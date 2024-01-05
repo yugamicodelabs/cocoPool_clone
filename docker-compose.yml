@@ -1,0 +1,18 @@
+version: "3"
+services:
+  coolpool:
+    env_file: staging.env
+    build:
+      context: .
+      args:
+        - ENVFILE
+      dockerfile: Dockerfile
+    container_name: coolpool
+    image: coolpool
+    restart: always
+    ports:
+    - "6600:6600"
+    volumes:
+    - /var/www/html/coolpool
+    - /var/www/html/coolpool/node_modules
+    - /var/logs/error.log:/var/log/coolpool/error.log
