@@ -10,6 +10,25 @@
   }
 }
 
+.phoneNumber {
+  composes: marketplaceModalPasswordMargins from global;
+  & input {
+    /* for Firefox */
+    -moz-appearance: textfield;
+
+    &::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  }
+}
+
+
 .name {
   display: flex;
   justify-content: space-between;
@@ -18,14 +37,27 @@
   @media (--viewportMedium) {
     margin-top: 32px;
   }
+
+  @media(max-width: 460px) {
+    flex-wrap: wrap;
+    gap: 30px;
+  }
 }
 
 .firstNameRoot {
-  width: calc(34% - 9px);
+  width: calc(50% - 9px);
+
+  @media(max-width: 460px) {
+    width: 100%;
+  }
 }
 
 .lastNameRoot {
-  width: calc(66% - 9px);
+  width: calc(50% - 9px);
+
+  @media(max-width: 460px) {
+    width: 100%;
+  }
 }
 
 .password {
@@ -34,4 +66,16 @@
 
 .bottomWrapper {
   composes: marketplaceModalBottomWrapper from global;
+}
+
+.termBox {
+  font-size: 13px;
+
+  &>div {
+    &>div {
+      & span {
+        display: block;
+      }
+    }
+  }
 }

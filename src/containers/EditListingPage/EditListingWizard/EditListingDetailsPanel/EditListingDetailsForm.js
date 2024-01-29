@@ -129,16 +129,16 @@ const AddListingFields = props => {
 
     return isKnownSchemaType && isTargetListingType && isProviderScope
       ? [
-          ...pickedFields,
-          <CustomExtendedDataField
-            key={namespacedKey}
-            name={namespacedKey}
-            fieldConfig={fieldConfig}
-            defaultRequiredMessage={intl.formatMessage({
-              id: 'EditListingDetailsForm.defaultRequiredMessage',
-            })}
-          />,
-        ]
+        ...pickedFields,
+        <CustomExtendedDataField
+          key={namespacedKey}
+          name={namespacedKey}
+          fieldConfig={fieldConfig}
+          defaultRequiredMessage={intl.formatMessage({
+            id: 'EditListingDetailsForm.defaultRequiredMessage',
+          })}
+        />,
+      ]
       : pickedFields;
   }, []);
 
@@ -241,11 +241,13 @@ const EditListingDetailsFormComponent = props => (
             />
           ) : null}
 
-          <AddListingFields
-            listingType={listingType}
-            listingFieldsConfig={listingFieldsConfig}
-            intl={intl}
-          />
+          <div className={css.checkboxWrapper}>
+            <AddListingFields
+              listingType={listingType}
+              listingFieldsConfig={listingFieldsConfig}
+              intl={intl}
+            />
+          </div>
 
           <Button
             className={css.submitButton}

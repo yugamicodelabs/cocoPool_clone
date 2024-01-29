@@ -602,3 +602,6 @@ export const DATE_TYPE_DATETIME = 'datetime';
 propTypes.dateType = oneOf([DATE_TYPE_DATE, DATE_TYPE_TIME, DATE_TYPE_DATETIME]);
 
 export { propTypes };
+
+export const CUSTOMER = "bookPool_c";
+export const PROVIDER = "sharePool_p";

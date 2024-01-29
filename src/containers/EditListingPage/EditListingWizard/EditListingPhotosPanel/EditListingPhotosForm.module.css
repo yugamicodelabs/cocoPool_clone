@@ -9,6 +9,10 @@
   flex-shrink: 0;
 }
 
+.sortableHandler {
+  touch-action: none;
+}
+
 .imagesFieldArray {
   flex-shrink: 0;
   display: grid;
@@ -92,6 +96,10 @@
     margin-top: 0;
     margin-bottom: 0;
   }
+
+  @media(max-width: 460px) {
+    font-size: 14px;
+  }
 }
 
 .imageTypes {
@@ -104,6 +112,9 @@
   @media (--viewportLarge) {
     margin-top: 0;
     margin-bottom: 0;
+  }
+  @media(max-width: 460px) {
+   text-align: center;
   }
 }
 

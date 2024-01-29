@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useEffect } from 'react';
 import { bool, string } from 'prop-types';
 import { compose } from 'redux';
 import { Field, Form as FinalForm } from 'react-final-form';
@@ -19,12 +19,17 @@ import {
   IconSpinner,
   FieldTextInput,
   H4,
+  FieldPhoneNumberInput,
+  FieldLocationAutocompleteInput,
 } from '../../../components';
 
 import css from './ProfileSettingsForm.module.css';
 
 const ACCEPT_IMAGES = 'image/*';
 const UPLOAD_CHANGE_DELAY = 2000; // Show spinner so that browser has time to load img srcset
+const MAX_LENGTH_POSTAL_CODE = 6;
+const DNI_NIE_MINIMUM_LENGTH = 10;
+const DNI_NIE_MAXIMUM_LENGTH = 10;
 
 class ProfileSettingsFormComponent extends Component {
   constructor(props) {
@@ -54,6 +59,7 @@ class ProfileSettingsFormComponent extends Component {
     return (
       <FinalForm
         {...this.props}
+        keepDirtyOnReinitialize={true}
         render={fieldRenderProps => {
           const {
             className,
@@ -72,6 +78,8 @@ class ProfileSettingsFormComponent extends Component {
             form,
             marketplaceName,
             values,
+            formId,
+            autoFocus
           } = fieldRenderProps;
 
           const user = ensureCurrentUser(currentUser);
@@ -107,6 +115,73 @@ class ProfileSettingsFormComponent extends Component {
           const bioPlaceholder = intl.formatMessage({
             id: 'ProfileSettingsForm.bioPlaceholder',
           });
+
+          // location
+          const addressRequiredMessage = intl.formatMessage({
+            id: 'EditListingLocationForm.addressRequired',
+          });
+          const addressNotRecognizedMessage = intl.formatMessage({
+            id: 'EditListingLocationForm.addressNotRecognized',
+          });
+          // Postal code
+          const maxLengthMessage = intl.formatMessage(
+            { id: "ProfileSettingsForm.postalCodemaxLength" },
+            { max: MAX_LENGTH_POSTAL_CODE }
+          )
+          const maxLength = validators.maxLength(maxLengthMessage, MAX_LENGTH_POSTAL_CODE);
+          // Telephone
+          const telephoneRequiredMessage = validators.requiredStringNoTrim(intl.formatMessage({
+            id: 'SignupForm.phoneNumberRequired',
+          }))
+          const telephoneMinLength = validators.minLength(
+            intl.formatMessage({ id: "SignupForm.telephoneTooShort" }, { minLength: validators.TELEPHONE_MIN_LENGTH }),
+            validators.TELEPHONE_MIN_LENGTH,
+          )
+          const telephoneMaxLength = validators.maxLength(
+            intl.formatMessage({ id: "SignupForm.telephoneTooLong" }, { minLength: validators.TELEPHONE_MIN_LENGTH }),
+            validators.TELEPHONE_MIN_LENGTH,
+          )
+          const telephoneValidators = validators.composeValidators(
+            telephoneRequiredMessage,
+            telephoneMinLength,
+            telephoneMaxLength
+          );
+          const telephoneLabel = intl.formatMessage({ id: "ProfileSettingsForm.telephoneLabel" });
+          const telephonePlaceholder = intl.formatMessage({ id: "ProfileSettingsForm.telephonePlaceholder" });
+          // USERNAME
+          const usernameLabel = intl.formatMessage({ id: "ProfileSettingsForm.usernameLabel" });
+          const usernamePlaceholder = intl.formatMessage({ id: "ProfileSettingsForm.usernamePlaceholder" });
+          // DNI/NIE number
+          const dni_nie_number_label = intl.formatMessage({ id: "ProfileSettingsForm.dni_nie_number_label" });
+          const dni_nie_number_placeholder = intl.formatMessage({ id: "ProfileSettingsForm.dni_nie_number_placeholder" });
+          const dni_nie_min_length = validators.minLength(
+            intl.formatMessage({ id: "ProfileSettingsForm.dni_nie_min_length_error" }, { minLen: DNI_NIE_MINIMUM_LENGTH }),
+            DNI_NIE_MINIMUM_LENGTH
+          );
+          const dni_nie_max_length = validators.maxLength(
+            intl.formatMessage({ id: "ProfileSettingsForm.dni_nie_max_length_error" }, { maxLen: DNI_NIE_MAXIMUM_LENGTH }),
+            DNI_NIE_MAXIMUM_LENGTH 
+          );
+          const dni_nie_number_validate = validators.composeValidators(lastNameRequired, dni_nie_max_length, dni_nie_min_length);
+          // Birthday
+          const birthdayLabel = intl.formatMessage({ id: "ProfileSettingsForm.birthdayLabel" });
+          const birthdayPlaceholder = intl.formatMessage({ id: "ProfileSettingsForm.birthdayPlaceholder" });
+          // Street
+          const streetLabel = intl.formatMessage({ id: "ProfileSettingsForm.streetLabel" });
+          const streetplaceholder = intl.formatMessage({ id: "ProfileSettingsForm.streetPlaceholder" });
+          // Provence
+          const provenceLabel = intl.formatMessage({ id: "ProfileSettingsForm.provenceLabel" });
+          const provencePlaceholder = intl.formatMessage({ id: "ProfileSettingsForm.provencePlaceholder" });
+          // Number
+          const numberLabel = intl.formatMessage({ id: "ProfileSettingsForm.numberLabel" });
+          const numberPlaceholder = intl.formatMessage({ id: "ProfileSettingsForm.numberPlaceholder" });
+          // City
+          const cityLabel = intl.formatMessage({ id: "ProfileSettingsForm.cityLabel" });
+          const cityPlaceholder = intl.formatMessage({ id: "ProfileSettingsForm.cityPlaceholder" });
+          // Postal Code
+          const postalCodeLabel = intl.formatMessage({ id: "ProfileSettingsForm.postalCodeLabel" });
+          const postalCodePlaceholder = intl.formatMessage({ id: "ProfileSettingsForm.postalCodePlaceholder" });
+
 
           const uploadingOverlay =
             uploadInProgress || this.state.uploadDelay ? (
@@ -180,12 +255,13 @@ class ProfileSettingsFormComponent extends Component {
             </div>
           ) : null;
 
+          const fillRequiredFieldsMessage = intl.formatMessage({ id: "ProfileSettingsForm.requiredFieldsMessage" });
+
           const classes = classNames(rootClassName || css.root, className);
           const submitInProgress = updateInProgress;
           const submittedOnce = Object.keys(this.submittedValues).length > 0;
           const pristineSinceLastSubmit = submittedOnce && isEqual(values, this.submittedValues);
-          const submitDisabled =
-            invalid || pristine || pristineSinceLastSubmit || uploadInProgress || submitInProgress;
+          const submitDisabled = invalid || pristine || pristineSinceLastSubmit || uploadInProgress || submitInProgress;
 
           return (
             <Form
@@ -268,6 +344,8 @@ class ProfileSettingsFormComponent extends Component {
                 <H4 as="h2" className={css.sectionTitle}>
                   <FormattedMessage id="ProfileSettingsForm.yourName" />
                 </H4>
+
+                {/* First and Last Name */}
                 <div className={css.nameContainer}>
                   <FieldTextInput
                     className={css.firstName}
@@ -288,6 +366,101 @@ class ProfileSettingsFormComponent extends Component {
                     validate={lastNameRequired}
                   />
                 </div>
+
+                {/* Username(optional) */}
+                <FieldTextInput
+                  className={css.inputBox}
+                  type={"text"}
+                  id={"username"}
+                  name={"username"}
+                  label={usernameLabel}
+                  placeholder={usernamePlaceholder}
+                />
+
+                {/* DNI/NIE Number */}
+                <FieldTextInput
+                  id={"dni_nie_n umber"}
+                  className={css.inputBox}
+                  type={"text"}
+                  name={"dni_nie_number"}
+                  label={dni_nie_number_label}
+                  placeholder={dni_nie_number_placeholder}
+                  validate={dni_nie_number_validate}
+                />
+
+                {/* Birthday */}
+                <FieldTextInput
+                  className={css.inputBox}
+                  id={"birthday"}
+                  name={"birthday"}
+                  type={"date"}
+                  label={birthdayLabel}
+                  placeholder={birthdayPlaceholder}
+                  validate={lastNameRequired}
+                />
+
+                {/* Phone/ Telephone */}
+                <FieldPhoneNumberInput
+                  className={css.inputBox}
+                  id={formId ? `${formId}telephone` : "telephone"}
+                  name={"phoneNumber"}
+                  type={"number"}
+                  label={telephoneLabel}
+                  placeholder={telephonePlaceholder}
+                  validate={telephoneValidators}
+                />
+
+                {/* location */}
+                <div>
+                  <FieldTextInput
+                    className={css.inputBox}
+                    id={"street"}
+                    name={"street"}
+                    type={"address"}
+                    label={streetLabel}
+                    placeholder={streetplaceholder}
+                    validate={lastNameRequired}
+                  />
+                  <FieldTextInput
+                    className={css.inputBox}
+                    id={"number"}
+                    name={"number"}
+                    type={"address"}
+                    label={numberLabel}
+                    placeholder={numberPlaceholder}
+                    validate={lastNameRequired}
+
+                  />
+                  <FieldTextInput
+                    className={css.inputBox}
+                    id={"city"}
+                    name={"city"}
+                    type={"address"}
+                    label={cityLabel}
+                    placeholder={cityPlaceholder}
+                    validate={lastNameRequired}
+
+                  />
+                  <FieldTextInput
+                    className={css.inputBox}
+                    id={"postalCode"}
+                    name={"postalCode"}
+                    type={"number"}
+                    label={postalCodeLabel}
+                    placeholder={postalCodePlaceholder}
+                    validate={lastNameRequired}
+
+                  />
+                  <FieldTextInput
+                    className={css.inputBox}
+                    id={"provence"}
+                    name={"provence"}
+                    type={"address"}
+                    label={provenceLabel}
+                    placeholder={provencePlaceholder}
+                    validate={lastNameRequired}
+                  />
+                </div>
               </div>
               <div className={classNames(css.sectionContainer, css.lastSection)}>
                 <H4 as="h2" className={css.sectionTitle}>
@@ -304,6 +477,9 @@ class ProfileSettingsFormComponent extends Component {
                   <FormattedMessage id="ProfileSettingsForm.bioInfo" values={{ marketplaceName }} />
                 </p>
               </div>
+              <p className={css.bioInfo}>
+                {fillRequiredFieldsMessage}
+              </p>
               {submitError}
               <Button
                 className={css.submitButton}

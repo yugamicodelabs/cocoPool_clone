@@ -73,6 +73,8 @@ import SectionMapMaybe from './SectionMapMaybe';
 import SectionGallery from './SectionGallery';
 
 import css from './ListingPage.module.css';
+const { types } = require('sharetribe-flex-sdk');
+const { Money } = types;
 
 const MIN_LENGTH_FOR_LONG_WORDS_IN_TITLE = 16;
 
@@ -173,6 +175,14 @@ export const ListingPageComponent = props => {
     publicData = {},
     metadata = {},
   } = currentListing.attributes;
+  const { priceRange = [] } = publicData || {};
+  //minimum no. of hours is required
+  // const minHours = 5; // by default assumed
+  const minGuest = priceRange && Array.isArray(priceRange) && priceRange.length && parseInt(priceRange[0].quantityRange.split("-")[0]);
+  const maxGuest = priceRange && Array.isArray(priceRange) && priceRange.length && parseInt(priceRange[priceRange.length - 1].quantityRange.split("-")[1]);
+  const basicPrice = priceRange && Array.isArray(priceRange) && priceRange.length && parseInt(priceRange[0]?.amount) || 100;
+  const currency = priceRange && Array.isArray(priceRange) && priceRange.length && priceRange[0]?.currency || config.currency;
+  const newAvgPrice = new Money(basicPrice, currency);
 
   const richTitle = (
     <span>
@@ -196,8 +206,7 @@ export const ListingPageComponent = props => {
   // banned or deleted display names for the function
   const authorDisplayName = userDisplayNameAsString(ensuredAuthor, '');
 
-  const { formattedPrice } = priceData(price, config.currency, intl);
-
+  const { formattedPrice } = priceData(newAvgPrice, config.currency, intl);
   const commonParams = { params, history, routes: routeConfiguration };
   const onContactUser = handleContactUser({
     ...commonParams,
@@ -246,14 +255,14 @@ export const ListingPageComponent = props => {
   // Read more about product schema
   // https://developers.google.com/search/docs/advanced/structured-data/product
   const productURL = `${config.marketplaceRootURL}${location.pathname}${location.search}${location.hash}`;
-  const schemaPriceMaybe = price
+  const schemaPriceMaybe = newAvgPrice
     ? {
-        price: intl.formatNumber(convertMoneyToNumber(price), {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }),
-        priceCurrency: price.currency,
-      }
+      price: intl.formatNumber(convertMoneyToNumber(newAvgPrice), {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
+      priceCurrency: newAvgPrice.currency,
+    }
     : {};
   const currentStock = currentListing.currentStock?.attributes?.quantity || 0;
   const schemaAvailability =
@@ -326,20 +335,20 @@ export const ListingPageComponent = props => {
               const hasValue = value != null;
               return isTargetListingType && config.schemaType === SCHEMA_TYPE_MULTI_ENUM
                 ? [
-                    ...pickedElements,
-                    <SectionMultiEnumMaybe
-                      key={key}
-                      heading={config?.showConfig?.label}
-                      options={createFilterOptions(enumOptions)}
-                      selectedOptions={value || []}
-                    />,
-                  ]
+                  ...pickedElements,
+                  <SectionMultiEnumMaybe
+                    key={key}
+                    heading={config?.showConfig?.label}
+                    options={createFilterOptions(enumOptions)}
+                    selectedOptions={value || []}
+                  />,
+                ]
                 : isTargetListingType && hasValue && config.schemaType === SCHEMA_TYPE_TEXT
-                ? [
+                  ? [
                     ...pickedElements,
                     <SectionTextMaybe key={key} heading={config?.showConfig?.label} text={value} />,
                   ]
-                : pickedElements;
+                  : pickedElements;
             }, [])}
 
             <SectionMapMaybe
@@ -368,6 +377,7 @@ export const ListingPageComponent = props => {
               className={css.productOrderPanel}
               listing={currentListing}
               isOwnListing={isOwnListing}
+              newAvgPrice={newAvgPrice}
               onSubmit={handleOrderSubmit}
               authorLink={
                 <NamedLink

@@ -3,8 +3,10 @@ import { bool, func, object, number, string } from 'prop-types';
 import classNames from 'classnames';
 
 import { FormattedMessage, intlShape } from '../../../../util/reactIntl';
+import { PROVIDER, propTypes } from '../../../../util/types';
+import { ensureUser } from '../../../../util/data';
 import { ACCOUNT_SETTINGS_PAGES } from '../../../../routing/routeConfiguration';
-import { propTypes } from '../../../../util/types';
+import TopbarSearchForm from '../TopbarSearchForm/TopbarSearchForm';
 import {
   Avatar,
   InlineTextButton,
@@ -16,7 +18,6 @@ import {
   NamedLink,
 } from '../../../../components';
 
-import TopbarSearchForm from '../TopbarSearchForm/TopbarSearchForm';
 
 import css from './TopbarDesktop.module.css';
 
@@ -35,6 +36,7 @@ const TopbarDesktop = props => {
     onSearchSubmit,
     initialSearchFormValues,
   } = props;
+
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -44,6 +46,8 @@ const TopbarDesktop = props => {
   const marketplaceName = appConfig.marketplaceName;
   const authenticatedOnClientSide = mounted && isAuthenticated;
   const isAuthenticatedOrJustHydrated = isAuthenticated || !mounted;
+  const ensuredUser = ensureUser(currentUser);
+  const userType = (ensuredUser && ensuredUser.id && ensuredUser.attributes && ensuredUser?.attributes?.profile?.publicData?.userType);
 
   const classes = classNames(rootClassName || css.root, className);
 
@@ -78,6 +82,7 @@ const TopbarDesktop = props => {
     return currentPage === page || isAccountSettingsPage ? css.currentPage : null;
   };
 
+
   const profileMenu = authenticatedOnClientSide ? (
     <Menu>
       <MenuLabel className={css.profileMenuLabel} isOpenClassName={css.profileMenuIsOpen}>
@@ -85,13 +90,15 @@ const TopbarDesktop = props => {
       </MenuLabel>
       <MenuContent className={css.profileMenuContent}>
         <MenuItem key="ManageListingsPage">
-          <NamedLink
-            className={classNames(css.yourListingsLink, currentPageClass('ManageListingsPage'))}
-            name="ManageListingsPage"
-          >
-            <span className={css.menuItemBorder} />
-            <FormattedMessage id="TopbarDesktop.yourListingsLink" />
-          </NamedLink>
+          {isAuthenticated && userType == PROVIDER ?
+            <NamedLink
+              className={classNames(css.yourListingsLink, currentPageClass('ManageListingsPage'))}
+              name="ManageListingsPage"
+            >
+              <span className={css.menuItemBorder} />
+              <FormattedMessage id="TopbarDesktop.yourListingsLink" />
+            </NamedLink>
+            : <></>}
         </MenuItem>
         <MenuItem key="ProfileSettingsPage">
           <NamedLink
@@ -145,11 +152,13 @@ const TopbarDesktop = props => {
         alt={intl.formatMessage({ id: 'TopbarDesktop.logo' }, { marketplaceName })}
       />
       {search}
-      <NamedLink className={css.createListingLink} name="NewListingPage">
-        <span className={css.createListing}>
-          <FormattedMessage id="TopbarDesktop.createListing" />
-        </span>
-      </NamedLink>
+      {isAuthenticated && userType == PROVIDER ?
+        <NamedLink className={css.createListingLink} name="NewListingPage">
+          <span className={css.createListing}>
+            <FormattedMessage id="TopbarDesktop.createListing" />
+          </span>
+        </NamedLink>
+        : <></>}
       {inboxLink}
       {profileMenu}
       {signupLink}

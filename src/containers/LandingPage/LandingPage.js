@@ -10,13 +10,19 @@ import { propTypes } from '../../util/types';
 
 import FallbackPage from './FallbackPage';
 import { ASSET_NAME } from './LandingPage.duck';
+import { H2, LayoutSingleColumn, Page, TabNav } from '../../components';
+import TopbarContainer from '../TopbarContainer/TopbarContainer';
+import FooterContainer from '../../containers/FooterContainer/FooterContainer';
+import { FormattedMessage } from 'react-intl';
+import { isScrollingDisabled } from '../../ducks/ui.duck';
+import css from './LandingPage.module.css';
 
 const PageBuilder = loadable(() =>
   import(/* webpackChunkName: "PageBuilder" */ '../PageBuilder/PageBuilder')
 );
 
 export const LandingPageComponent = props => {
-  const { pageAssetsData, inProgress, error } = props;
+  const { pageAssetsData, inProgress, error, scrollingDisabled } = props;
 
   return (
     <PageBuilder
@@ -32,11 +38,12 @@ LandingPageComponent.propTypes = {
   pageAssetsData: object,
   inProgress: bool,
   error: propTypes.error,
+  scrollingDisabled: bool.isRequired,
 };
 
 const mapStateToProps = state => {
   const { pageAssetsData, inProgress, error } = state.hostedAssets || {};
-  return { pageAssetsData, inProgress, error };
+  return { pageAssetsData, inProgress, error, scrollingDisabled: isScrollingDisabled(state), };
 };
 
 // Note: it is important that the withRouter HOC is **outside** the

@@ -132,7 +132,7 @@ const PriceMaybe = props => {
   return showCurrencyMismatch ? (
     <div className={css.priceContainerInCTA}>
       <div className={css.priceValue} title={priceTitle}>
-        {formattedPrice}
+        a partir de {formattedPrice}
       </div>
       <div className={css.perUnitInCTA}>
         <FormattedMessage id="OrderPanel.perUnit" values={{ unitType }} />
@@ -140,7 +140,7 @@ const PriceMaybe = props => {
     </div>
   ) : (
     <div className={css.priceContainer}>
-      <p className={css.price}>{formatMoney(intl, price)}</p>
+      <p className={css.price}>a partir de {formatMoney(intl, price)}</p>
       <div className={css.perUnit}>
         <FormattedMessage id="OrderPanel.perUnit" values={{ unitType }} />
       </div>
@@ -168,6 +168,7 @@ const OrderPanel = props => {
     history,
     location,
     intl,
+    startWithPrice,
     onFetchTransactionLineItems,
     onContactUser,
     lineItems,
@@ -179,14 +180,14 @@ const OrderPanel = props => {
   } = props;
 
   const publicData = listing?.attributes?.publicData || {};
-  const { unitType, transactionProcessAlias = '' } = publicData || {};
+  const { unitType, transactionProcessAlias = '', extraItems, priceRange } = publicData || {};
   const processName = resolveLatestProcessName(transactionProcessAlias.split('/')[0]);
   const lineItemUnitType = lineItemUnitTypeMaybe || `line-item/${unitType}`;
 
-  const price = listing?.attributes?.price;
+  const minBookingPrice = listing?.attributes?.price;
   const isPaymentProcess = processName !== INQUIRY_PROCESS_NAME;
 
-  const showPriceMissing = isPaymentProcess && !price;
+  const showPriceMissing = isPaymentProcess && !startWithPrice;
   const PriceMissing = () => {
     return (
       <p className={css.error}>
@@ -194,7 +195,7 @@ const OrderPanel = props => {
       </p>
     );
   };
-  const showInvalidCurrency = isPaymentProcess && price?.currency !== marketplaceCurrency;
+  const showInvalidCurrency = isPaymentProcess && startWithPrice?.currency !== marketplaceCurrency;
   const InvalidCurrency = () => {
     return (
       <p className={css.error}>
@@ -264,7 +265,7 @@ const OrderPanel = props => {
         </div>
 
         <PriceMaybe
-          price={price}
+          price={startWithPrice}
           publicData={publicData}
           validListingTypes={validListingTypes}
           intl={intl}
@@ -288,10 +289,12 @@ const OrderPanel = props => {
         ) : showBookingTimeForm ? (
           <BookingTimeForm
             className={css.bookingForm}
+            extraItems={extraItems}
             formId="OrderPanelBookingTimeForm"
             lineItemUnitType={lineItemUnitType}
             onSubmit={onSubmit}
-            price={price}
+            price={startWithPrice}
+            minBookingPrice={minBookingPrice}
             marketplaceCurrency={marketplaceCurrency}
             dayCountAvailableForBooking={dayCountAvailableForBooking}
             listingId={listing.id}
@@ -306,6 +309,7 @@ const OrderPanel = props => {
             lineItems={lineItems}
             fetchLineItemsInProgress={fetchLineItemsInProgress}
             fetchLineItemsError={fetchLineItemsError}
+            priceRange={priceRange}
           />
         ) : showBookingDatesForm ? (
           <BookingDatesForm
@@ -313,7 +317,7 @@ const OrderPanel = props => {
             formId="OrderPanelBookingDatesForm"
             lineItemUnitType={lineItemUnitType}
             onSubmit={onSubmit}
-            price={price}
+            price={startWithPrice}
             marketplaceCurrency={marketplaceCurrency}
             dayCountAvailableForBooking={dayCountAvailableForBooking}
             listingId={listing.id}
@@ -331,7 +335,7 @@ const OrderPanel = props => {
           <ProductOrderForm
             formId="OrderPanelProductOrderForm"
             onSubmit={onSubmit}
-            price={price}
+            price={startWithPrice}
             marketplaceCurrency={marketplaceCurrency}
             currentStock={currentStock}
             pickupEnabled={pickupEnabled}
@@ -355,7 +359,7 @@ const OrderPanel = props => {
       </ModalInMobile>
       <div className={css.openOrderForm}>
         <PriceMaybe
-          price={price}
+          price={startWithPrice}
           publicData={publicData}
           validListingTypes={validListingTypes}
           intl={intl}
@@ -369,6 +373,7 @@ const OrderPanel = props => {
           </div>
         ) : (
           <PrimaryButton
+            className={css.bookingButton}
             onClick={handleSubmit(
               isOwnListing,
               isClosed,

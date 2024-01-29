@@ -6,9 +6,12 @@ import { ACCOUNT_SETTINGS_PAGES } from '../../routing/routeConfiguration';
 import { LinkTabNavHorizontal } from '../../components';
 
 import css from './UserNav.module.css';
+import { useSelector } from 'react-redux';
+import { ensureUser } from '../../util/data';
 
 const UserNav = props => {
   const { className, rootClassName, currentPage } = props;
+  const currentUser = ensureUser(useSelector(state => state?.user?.currentUser))
   const classes = classNames(rootClassName || css.root, className);
 
   const tabs = [
@@ -38,7 +41,7 @@ const UserNav = props => {
   ];
 
   return (
-    <LinkTabNavHorizontal className={classes} tabRootClassName={css.tab} tabs={tabs} skin="dark" />
+    <LinkTabNavHorizontal className={classes} tabRootClassName={css.tab} currentUser={currentUser} tabs={tabs} skin="dark" />
   );
 };
 

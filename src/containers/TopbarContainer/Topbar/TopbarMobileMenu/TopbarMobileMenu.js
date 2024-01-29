@@ -8,7 +8,7 @@ import classNames from 'classnames';
 
 import { ACCOUNT_SETTINGS_PAGES } from '../../../../routing/routeConfiguration';
 import { FormattedMessage } from '../../../../util/reactIntl';
-import { propTypes } from '../../../../util/types';
+import { PROVIDER, propTypes } from '../../../../util/types';
 import { ensureCurrentUser } from '../../../../util/data';
 
 import {
@@ -31,7 +31,7 @@ const TopbarMobileMenu = props => {
   } = props;
 
   const user = ensureCurrentUser(currentUser);
-
+  const userType = (user && user.id && user.attributes && user?.attributes?.profile?.publicData?.userType);
   if (!isAuthenticated) {
     const signup = (
       <NamedLink name="SignupPage" className={css.signupLink}>
@@ -61,9 +61,9 @@ const TopbarMobileMenu = props => {
           </div>
         </div>
         <div className={css.footer}>
-          <NamedLink className={css.createNewListingLink} name="NewListingPage">
+          {isAuthenticated && userType == PROVIDER ? <NamedLink className={css.createNewListingLink} name="NewListingPage">
             <FormattedMessage id="TopbarMobileMenu.newListingLink" />
-          </NamedLink>
+          </NamedLink> : null}
         </div>
       </div>
     );
@@ -99,12 +99,14 @@ const TopbarMobileMenu = props => {
           <FormattedMessage id="TopbarMobileMenu.inboxLink" />
           {notificationCountBadge}
         </NamedLink>
-        <NamedLink
-          className={classNames(css.navigationLink, currentPageClass('ManageListingsPage'))}
-          name="ManageListingsPage"
-        >
-          <FormattedMessage id="TopbarMobileMenu.yourListingsLink" />
-        </NamedLink>
+        {isAuthenticated && userType == PROVIDER ?
+          <NamedLink
+            className={classNames(css.navigationLink, currentPageClass('ManageListingsPage'))}
+            name="ManageListingsPage"
+          >
+            <FormattedMessage id="TopbarMobileMenu.yourListingsLink" />
+          </NamedLink>
+          : null}
         <NamedLink
           className={classNames(css.navigationLink, currentPageClass('ProfileSettingsPage'))}
           name="ProfileSettingsPage"
@@ -119,11 +121,13 @@ const TopbarMobileMenu = props => {
         </NamedLink>
         <div className={css.spacer} />
       </div>
-      <div className={css.footer}>
-        <NamedLink className={css.createNewListingLink} name="NewListingPage">
-          <FormattedMessage id="TopbarMobileMenu.newListingLink" />
-        </NamedLink>
-      </div>
+      {isAuthenticated && userType == PROVIDER ?
+        <div className={css.footer}>
+          <NamedLink className={css.createNewListingLink} name="NewListingPage">
+            <FormattedMessage id="TopbarMobileMenu.newListingLink" />
+          </NamedLink>
+        </div>
+        : null}
     </div>
   );
 };

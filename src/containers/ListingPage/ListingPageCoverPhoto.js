@@ -31,7 +31,7 @@ import {
   userDisplayNameAsString,
 } from '../../util/data';
 import { richText } from '../../util/richText';
-import { getMarketplaceEntities } from '../../ducks/marketplaceData.duck';
+import { getListingsById, getMarketplaceEntities } from '../../ducks/marketplaceData.duck';
 import { manageDisableScrolling, isScrollingDisabled } from '../../ducks/ui.duck';
 import { initializeCardPaymentData } from '../../ducks/stripe.duck.js';
 
@@ -53,6 +53,8 @@ import {
   setInitialValues,
   fetchTimeSlots,
   fetchTransactionLineItems,
+  showListing,
+  showListingById,
 } from './ListingPage.duck';
 
 import {
@@ -73,10 +75,15 @@ import SectionAuthorMaybe from './SectionAuthorMaybe';
 import SectionMapMaybe from './SectionMapMaybe';
 
 import css from './ListingPage.module.css';
+import IconCard from '../../components/SavedCardDetails/IconCard/IconCard.js';
+import SectionCancelPolicy from './SectionCancelPolicy.js';
+import SectionHowitWork from './SectionHowitWork.js';
+import SimilarListingMaybe from './SimilarListingMaybe.js';
+import { setActiveListing } from '../SearchPage/SearchPage.duck.js';
 
 const MIN_LENGTH_FOR_LONG_WORDS_IN_TITLE = 16;
 
-const { UUID } = sdkTypes;
+const { UUID, Money } = sdkTypes;
 
 export const ListingPageComponent = props => {
   const [inquiryModalOpen, setInquiryModalOpen] = useState(
@@ -112,8 +119,14 @@ export const ListingPageComponent = props => {
     onInitializeCardPaymentData,
     config,
     routeConfiguration,
+    onActivateListing,
+    getListingById
   } = props;
 
+  // Listings from listingPage
+  const { searchedListings=[] } = location.state || {};
+
+  
   // prop override makes testing a bit easier
   // TODO: improve this when updating test setup
   const listingConfig = listingConfigProp || config.listing;
@@ -125,6 +138,8 @@ export const ListingPageComponent = props => {
       ? ensureOwnListing(getOwnListing(listingId))
       : ensureListing(getListing(listingId));
 
+  // const listings = currentListing?.id?.uuid && searchedListings.filter(id => id != currentListing?.id?.uuid).map(id => getListingById(new UUID(id), config, false));
+  // console.log(listings, "No listings");
   const listingSlug = rawParams.slug || createSlug(currentListing.attributes.title || '');
   const params = { slug: listingSlug, ...rawParams };
 
@@ -174,6 +189,16 @@ export const ListingPageComponent = props => {
     publicData = {},
     metadata = {},
   } = currentListing.attributes;
+  const { priceRange = [], location: listingLocation } = publicData || {};
+
+
+  const minGuestRange = priceRange && Array.isArray(priceRange) && priceRange.length && priceRange[0].quantityRange.split("-");
+  const minGuest = minGuestRange?.length > 1 && minGuestRange[0];
+  const maxGuestRange = priceRange && Array.isArray(priceRange) && priceRange.length && priceRange[priceRange.length - 1].quantityRange.split("-");
+  const maxGuest = maxGuestRange?.length > 1 ? maxGuestRange[1] : maxGuestRange[0];
+  const startWithPrice = price;
+  const locationArray = listingLocation?.address.split(", ");
+  const poolAddress = locationArray ? `${locationArray[1]}, ${locationArray[2]}` : "";
 
   const richTitle = (
     <span>
@@ -197,7 +222,7 @@ export const ListingPageComponent = props => {
   // banned or deleted display names for the function
   const authorDisplayName = userDisplayNameAsString(ensuredAuthor, '');
 
-  const { formattedPrice } = priceData(price, config.currency, intl);
+  const { formattedPrice } = priceData(startWithPrice, config.currency, intl);
 
   const commonParams = { params, history, routes: routeConfiguration };
   const onContactUser = handleContactUser({
@@ -247,14 +272,14 @@ export const ListingPageComponent = props => {
   // Read more about product schema
   // https://developers.google.com/search/docs/advanced/structured-data/product
   const productURL = `${config.marketplaceRootURL}${location.pathname}${location.search}${location.hash}`;
-  const schemaPriceMaybe = price
+  const schemaPriceMaybe = startWithPrice
     ? {
-        price: intl.formatNumber(convertMoneyToNumber(price), {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }),
-        priceCurrency: price.currency,
-      }
+      price: intl.formatNumber(convertMoneyToNumber(startWithPrice), {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
+      priceCurrency: startWithPrice.currency,
+    }
     : {};
   const currentStock = currentListing.currentStock?.attributes?.quantity || 0;
   const schemaAvailability =
@@ -314,13 +339,36 @@ export const ListingPageComponent = props => {
                 <FormattedMessage id="ListingPage.orderTitle" values={{ title: richTitle }} />
               </H4>
             </div>
+            <div className={css.topSectionBar}>
+              <div className={css.locationSection}>
+                <span className={css.locationIcon}>
+                  <IconCard brand="location" />
+                </span>
+                <span className={css.locationAddress}>
+                  {/* 08348 Cabrils, Barcelona, Spain */}
+                  {poolAddress}
+                </span>
+              </div>
+              <div className={css.locationSection}>
+                <span className={css.locationIcon}>
+                  <IconCard brand="people" />
+                </span>
+                <span className={css.locationAddress}>
+                  {maxGuest} People (max)
+                </span>
+              </div>
+              <div className={css.locationSection}>
+                <span className={css.locationIcon}>
+                  <IconCard brand="star" />
+                </span>
+                <span className={css.locationAddress}>
+                  ({reviews?.length} Reviews)
+                </span>
+              </div>
+            </div>
+
             <SectionTextMaybe text={description} showAsIngress />
-            <SectionDetailsMaybe
-              publicData={publicData}
-              metadata={metadata}
-              listingConfig={listingConfig}
-              intl={intl}
-            />
+
             {listingConfig.listingFields.reduce((pickedElements, config) => {
               const { key, enumOptions, includeForListingTypes, scope = 'public' } = config;
               const listingType = publicData?.listingType;
@@ -332,22 +380,30 @@ export const ListingPageComponent = props => {
               const hasValue = value != null;
               return isTargetListingType && config.schemaType === SCHEMA_TYPE_MULTI_ENUM
                 ? [
-                    ...pickedElements,
-                    <SectionMultiEnumMaybe
-                      key={key}
-                      heading={config?.showConfig?.label}
-                      options={createFilterOptions(enumOptions)}
-                      selectedOptions={value || []}
-                    />,
-                  ]
+                  ...pickedElements,
+                  <SectionMultiEnumMaybe
+                    key={key}
+                    heading={config?.showConfig?.label}
+                    options={createFilterOptions(enumOptions)}
+                    selectedOptions={value || []}
+                  />,
+                ]
                 : isTargetListingType && hasValue && config.schemaType === SCHEMA_TYPE_TEXT
-                ? [
+                  ? [
                     ...pickedElements,
                     <SectionTextMaybe key={key} heading={config?.showConfig?.label} text={value} />,
                   ]
-                : pickedElements;
+                  : pickedElements;
             }, [])}
 
+            <SectionDetailsMaybe
+              publicData={publicData}
+              metadata={metadata}
+              listingConfig={listingConfig}
+              intl={intl}
+            />
+            <SectionCancelPolicy />
+            <SectionHowitWork />
             <SectionMapMaybe
               geolocation={geolocation}
               publicData={publicData}
@@ -368,6 +424,13 @@ export const ListingPageComponent = props => {
               currentUser={currentUser}
               onManageDisableScrolling={onManageDisableScrolling}
             />
+            {/* <SimilarListingMaybe
+              listings={listings}
+              currentListing={currentListing}
+              setActiveListing={onActivateListing}
+              intl={intl}
+              isMapVariant
+            /> */}
           </div>
           <div className={css.orderColumnForHeroLayout}>
             <OrderPanel
@@ -404,6 +467,7 @@ export const ListingPageComponent = props => {
               marketplaceCurrency={config.currency}
               dayCountAvailableForBooking={config.stripe.dayCountAvailableForBooking}
               marketplaceName={config.marketplaceName}
+              startWithPrice={startWithPrice}
             />
           </div>
         </div>
@@ -556,6 +620,8 @@ const mapDispatchToProps = dispatch => ({
   onInitializeCardPaymentData: () => dispatch(initializeCardPaymentData()),
   onFetchTimeSlots: (listingId, start, end, timeZone) =>
     dispatch(fetchTimeSlots(listingId, start, end, timeZone)),
+  onActivateListing: listingId => dispatch(setActiveListing(listingId)),
+  getListingById: (listingId, config) => dispatch(showListingById(listingId, config))
 });
 
 // Note: it is important that the withRouter HOC is **outside** the

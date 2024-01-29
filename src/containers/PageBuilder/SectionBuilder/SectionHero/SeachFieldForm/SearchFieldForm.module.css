@@ -1,0 +1,200 @@
+.root {
+  /* SectionContainer defaults */
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  width: 100%;
+  position: relative;
+
+  /* Hero specific */
+  /* min-height: 80vh; */
+  /* display: flex;
+  justify-content: center;
+  align-items: center; */
+}
+
+.heroSlider {
+
+  & .searchBarSlider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 60px auto 0 auto;
+    width: fit-content;
+    gap: 20px;
+    padding: 0 20px;
+
+    @media(max-width: 960px) {
+      flex-wrap: wrap;
+      gap: 10px;
+      flex-direction: column;
+      margin: 40px auto 0;
+    }
+
+    & .locationInput {
+      position: relative;
+
+      & .searchIcon {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translate(0, -50%);
+        z-index: 9;
+      }
+
+      & .inputBox {
+        & input {
+          padding-left: 35px;
+
+          @media(max-width: 960px) {
+            height: 40px;
+          }
+        }
+      }
+    }
+
+    & .selectDate {
+      width: 305px;
+
+      @media(max-width: 1150px) {
+        width: auto;
+      }
+
+      @media(max-width: 960px) {
+        width: 100%;
+      }
+
+      & .datePickerInput {
+        &>div {
+          &>div {
+            &>div {
+              &>div {
+                &>div {
+                  background-color: #0000;
+
+                  & input {
+                    padding-left: 35px;
+                    background-position: 10px center;
+
+                    @media(max-width: 960px) {
+                      height: 40px;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    & .dropdownBox {
+      position: relative;
+
+      @media(max-width: 960px) {
+        width: 100%;
+      }
+
+      & .inputBox {
+        & input {
+          height: 48px;
+          padding: 6px 6px 6px 35px;
+
+          @media(max-width: 960px) {
+            height: 40px;
+          }
+        }
+      }
+
+      & .peopleIcon {
+        top: 50%;
+        z-index: 9;
+        left: 10px;
+        position: absolute;
+        transform: translate(0, -50%);
+        z-index: 9;
+      }
+    }
+
+    & .submitButton {
+      @media(max-width: 960px) {
+        width: 100%;
+      }
+
+      & button {
+        height: 48px;
+        color: #fff;
+        font-size: 18px;
+        cursor: pointer;
+        min-height: 48px;
+        padding: 5px 30px;
+        border-radius: 10px;
+        background-color: #ffd100;
+        border: 1px solid #ffd100;
+
+        @media(max-width: 960px) {
+          width: 100%;
+          height: 40px;
+          font-size: 16px;
+        }
+
+        @media(max-width: 768px) {
+          min-height: 45px;
+        }
+      }
+    }
+  }
+}
+
+.locationAutocompleteInput {}
+
+.locationAutocompleteInputIcon {
+  display: none;
+}
+
+.predictionsRoot {
+  position: absolute;
+  width: 100%;
+  top: 36px;
+  left: 0;
+  background-color: var(--marketplaceColor);
+  border-bottom-left-radius: var(--borderRadius);
+  border-bottom-right-radius: var(--borderRadius);
+  box-shadow: var(--boxShadowPopup);
+  z-index: calc(var(--zIndexPopup) + 1);
+
+  @media (--viewportMedium) {
+    top: 40px;
+  }
+}
+
+.validLocation {}
+
+.locationAddress,
+.building {
+  flex-shrink: 0;
+  /* margin-bottom: 24px; */
+
+  @media (--viewportMedium) {
+    /* margin-bottom: 32px; */
+  }
+}
+
+.phoneNumber {
+
+  /* composes: marketplaceModalPasswordMargins from global; */
+  & input {
+    /* for Firefox */
+    -moz-appearance: textfield;
+
+    &::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  }
+}

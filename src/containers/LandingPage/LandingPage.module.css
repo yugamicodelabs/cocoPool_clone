@@ -1,0 +1,146 @@
+.landingWrapper {
+    background-color: #00ac9d;
+
+    .mainWrapper {
+        max-width: 1140px;
+        margin: 50px auto;
+        background-color: #fff;
+        border-radius: 50px;
+        box-shadow: 0px 0px 10px 0px #c0dedb;
+
+        & .secondSection {
+            background-image: url(../../assets/swimimg.png);
+            padding: 50px 75px;
+            background-position: center;
+            background-size: cover;
+            position: relative;
+
+            &:after {
+                content: "";
+                position: absolute;
+                background: #0000003d;
+                height: 100%;
+                width: 100%;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+            }
+
+            & .headingText {
+                margin-top: 0;
+                color: #fff;
+                z-index: 9;
+                position: relative;
+            }
+
+            & p {
+                color: #fff;
+                font-style: italic;
+                z-index: 9;
+                position: relative;
+            }
+        }
+
+        & .thirdSection {
+            display: flex;
+            padding: 0 70px;
+
+            & .leftSide {
+                width: 50%;
+                text-align: right;
+
+                & .mobileIcon {
+                    top: -110px;
+                    position: relative;
+                    z-index: 9;
+                    rotate: 347deg;
+
+                    &::after {
+                        content: "";
+                        position: absolute;
+                        background: #ffd100;
+                        width: 380px;
+                        height: 380px;
+                        left: 32px;
+                        bottom: 70px;
+                        z-index: -1;
+                        border-radius: 50%;
+                    }
+
+                    & img {
+                        height: 100%;
+                        width: 100%;
+                    }
+                }
+            }
+
+            & .rightSide {
+                width: 50%;
+
+                & .rightHeading {
+                    color: #00ac9d;
+                }
+
+                & .rightDescription {}
+
+                & .roundImage {
+                    position: relative;
+
+                    &:after {
+                        content: "";
+                        position: absolute;
+                        width: 400px;
+                        height: 400px;
+                        background: #ffd100;
+                        bottom: -35px;
+                        left: -30px;
+                        border-radius: 50%;
+                    }
+
+                    & img {
+                        z-index: 9;
+                        border-radius: 50%;
+                        width: 400px;
+                        height: 400px;
+                        object-fit: cover;
+                        position: relative;
+
+                    }
+                }
+            }
+        }
+
+        & .footerBox {
+            background-image: url(../../assets/footerback.jpg);
+            padding: 50px 0;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0 0 50px 50px;
+            margin-top: 100px;
+            position: relative;
+            overflow: hidden;
+            z-index: 9;
+
+            &:after {
+                content: "";
+                position: absolute;
+                background-color: #ffd10073;
+                height: 100%;
+                width: 100%;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                top: 0;
+                z-index: -1;
+            }
+
+            & img {
+                width: 100px;
+            }
+        }
+    }
+}

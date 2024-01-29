@@ -374,7 +374,60 @@ export const fetchTransactionLineItems = ({ orderData, listingId, isOwnListing }
     });
 };
 
+export const showListingById = (listingId, config) =>(dispatch, getState, sdk) => {
+  const {
+    aspectWidth = 1,
+    aspectHeight = 1,
+    variantPrefix = 'listing-card',
+  } = config.layout.listingImage;
+  const aspectRatio = aspectHeight / aspectWidth;
+
+  dispatch(showListingRequest(listingId));
+  dispatch(fetchCurrentUser());
+  const params = {
+    id: listingId,
+    include: ['author', 'author.profileImage', 'images', 'currentStock'],
+    'fields.image': [
+      // Scaled variants for large images
+      'variants.scaled-small',
+      'variants.scaled-medium',
+      'variants.scaled-large',
+      'variants.scaled-xlarge',
+
+      // Cropped variants for listing thumbnail images
+      `variants.${variantPrefix}`,
+      `variants.${variantPrefix}-2x`,
+      `variants.${variantPrefix}-4x`,
+      `variants.${variantPrefix}-6x`,
+
+      // Social media
+      'variants.facebook',
+      'variants.twitter',
+
+      // Avatars
+      'variants.square-small',
+      'variants.square-small2x',
+    ],
+    ...createImageVariantConfig(`${variantPrefix}`, 400, aspectRatio),
+    ...createImageVariantConfig(`${variantPrefix}-2x`, 800, aspectRatio),
+    ...createImageVariantConfig(`${variantPrefix}-4x`, 1600, aspectRatio),
+    ...createImageVariantConfig(`${variantPrefix}-6x`, 2400, aspectRatio),
+  };
+
+  return sdk.listings.show(params)
+    .then(response => {
+      const listingFields = config?.listing?.listingFields;
+      const sanitizeConfig = { listingFields };
+      dispatch(addMarketplaceEntities(response, sanitizeConfig));
+      return response.data.data;
+    })
+    .catch(e => {
+      dispatch(showListingError(storableError(e)));
+    });
+}
+
 export const loadData = (params, search, config) => dispatch => {
+  console.log(search, "search");
   const listingId = new UUID(params.id);
 
   // Clear old line-items

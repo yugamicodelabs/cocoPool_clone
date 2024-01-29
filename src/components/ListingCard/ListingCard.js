@@ -15,8 +15,10 @@ import { createSlug } from '../../util/urlHelpers';
 import { isBookingProcessAlias } from '../../transactions/transaction';
 
 import { AspectRatioWrapper, NamedLink, ResponsiveImage } from '../../components';
+import { types as sdkTypes } from "../../util/sdkLoader";
 
 import css from './ListingCard.module.css';
+import IconCard from '../SavedCardDetails/IconCard/IconCard';
 
 const MIN_LENGTH_FOR_LONG_WORDS = 10;
 
@@ -49,20 +51,20 @@ const PriceMaybe = props => {
   const showPrice = displayPrice(foundListingTypeConfig);
   if (!showPrice && price) {
     return null;
-  }
+  };
 
   const isBookable = isBookingProcessAlias(publicData?.transactionProcessAlias);
   const { formattedPrice, priceTitle } = priceData(price, config.currency, intl);
   return (
     <div className={css.price}>
       <div className={css.priceValue} title={priceTitle}>
-        {formattedPrice}
+        desdos {formattedPrice}
       </div>
-      {isBookable ? (
+      {/* {isBookable ? (
         <div className={css.perUnit}>
           <FormattedMessage id="ListingCard.perUnit" values={{ unitType: publicData?.unitType }} />
         </div>
-      ) : null}
+      ) : null} */}
     </div>
   );
 };
@@ -77,11 +79,14 @@ export const ListingCardComponent = props => {
     renderSizes,
     setActiveListing,
     showAuthorInfo,
+    listingIds=[]
   } = props;
+  const { Money } = sdkTypes;
   const classes = classNames(rootClassName || css.root, className);
   const currentListing = ensureListing(listing);
   const id = currentListing.id.uuid;
-  const { title = '', price, publicData } = currentListing.attributes;
+  const { title = '', price=new Money(100, "EUR"), publicData } = currentListing.attributes;
+  const { location, priceRange } = publicData || {};
   const slug = createSlug(title);
   const author = ensureUser(listing.author);
   const authorName = author.attributes.profile.displayName;
@@ -99,13 +104,13 @@ export const ListingCardComponent = props => {
 
   const setActivePropsMaybe = setActiveListing
     ? {
-        onMouseEnter: () => setActiveListing(currentListing.id),
-        onMouseLeave: () => setActiveListing(null),
-      }
+      onMouseEnter: () => setActiveListing(currentListing.id),
+      onMouseLeave: () => setActiveListing(null),
+    }
     : null;
 
   return (
-    <NamedLink className={classes} name="ListingPage" params={{ id, slug }}>
+    <NamedLink className={classes} name="ListingPage" params={{ id, slug }} to={{ search: listingIds.join(",") }}>
       <AspectRatioWrapper
         className={css.aspectRatioWrapper}
         width={aspectWidth}
@@ -119,22 +124,43 @@ export const ListingCardComponent = props => {
           variants={variants}
           sizes={renderSizes}
         />
+        <div className={css.priceBox}>
+          <PriceMaybe price={price} publicData={publicData} config={config} intl={intl} />/h
+        </div>
       </AspectRatioWrapper>
       <div className={css.info}>
-        <PriceMaybe price={price} publicData={publicData} config={config} intl={intl} />
-        <div className={css.mainInfo}>
-          <div className={css.title}>
-            {richText(title, {
-              longWordMinLength: MIN_LENGTH_FOR_LONG_WORDS,
-              longWordClass: css.longWord,
-            })}
+        <div className={css.title}>
+          {richText(title, {
+            longWordMinLength: MIN_LENGTH_FOR_LONG_WORDS,
+            longWordClass: css.longWord,
+          })}
+        </div>
+        <div className={css.peopleLocation}>
+          <div className={css.iconHeading}>
+            <span className={css.locationIcon}>
+              <IconCard brand="peoples" />
+            </span>
+            <span className={css.locationName}>Madrid</span>
           </div>
-          {showAuthorInfo ? (
+          <div className={css.iconHeading}>
+            <span className={css.locationIcon}>
+              <IconCard brand="locationcard" />
+            </span>
+            <span className={css.locationName}>Madrid</span>
+          </div>
+        </div>
+        <div className={css.reviewsBox}>
+          <span>(0)</span>
+          <span className={css.starIcon}>
+            <IconCard brand="cardstar" />
+            <IconCard brand="blankstar" />
+          </span>
+        </div>
+        {/* {showAuthorInfo ? (
             <div className={css.authorInfo}>
               <FormattedMessage id="ListingCard.author" values={{ authorName }} />
             </div>
-          ) : null}
-        </div>
+          ) : null} */}
       </div>
     </NamedLink>
   );

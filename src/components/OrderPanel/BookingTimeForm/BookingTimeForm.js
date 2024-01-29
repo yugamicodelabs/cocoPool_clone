@@ -1,20 +1,26 @@
-import React, { Component } from 'react';
+import React, { Component, useEffect } from 'react';
 import { array, bool, func, number, object, string } from 'prop-types';
 import { compose } from 'redux';
 import { Form as FinalForm, FormSpy } from 'react-final-form';
 import classNames from 'classnames';
 
-import { FormattedMessage, intlShape, injectIntl } from '../../../util/reactIntl';
-import { timestampToDate } from '../../../util/dates';
 import { propTypes } from '../../../util/types';
+import { formatMoney } from '../../../util/currency';
+import { timestampToDate } from '../../../util/dates';
+import { types as sdkTypes } from "../../../util/sdkLoader";
+import { FormattedMessage, intlShape, injectIntl } from '../../../util/reactIntl';
+import { composeValidators, maxLength, minLength, numberAtLeast, numberAtMax, required } from '../../../util/validators';
 import { BOOKING_PROCESS_NAME } from '../../../transactions/transaction';
 
-import { Form, H6, PrimaryButton } from '../../../components';
+import { FieldCheckbox, FieldSelect, Form, H6, PrimaryButton } from '../../../components';
 
 import EstimatedCustomerBreakdownMaybe from '../EstimatedCustomerBreakdownMaybe';
 import FieldDateAndTimeInput from './FieldDateAndTimeInput';
 
 import css from './BookingTimeForm.module.css';
+
+const { Money } = sdkTypes;
+
 
 export class BookingTimeFormComponent extends Component {
   constructor(props) {
@@ -33,25 +39,24 @@ export class BookingTimeFormComponent extends Component {
   // In case you add more fields to the form, make sure you add
   // the values here to the orderData object.
   handleOnChange(formValues) {
-    const { bookingStartTime, bookingEndTime } = formValues.values;
+    const { bookingStartTime, bookingEndTime, extraItems, guestCount } = formValues.values;
     const startDate = bookingStartTime ? timestampToDate(bookingStartTime) : null;
     const endDate = bookingEndTime ? timestampToDate(bookingEndTime) : null;
 
     const listingId = this.props.listingId;
     const isOwnListing = this.props.isOwnListing;
-
     // Note: we expect values bookingStartTime and bookingEndTime to be strings
     // which is the default case when the value has been selected through the form
     const isStartBeforeEnd = bookingStartTime < bookingEndTime;
-
     if (
       bookingStartTime &&
       bookingEndTime &&
+      guestCount &&
       isStartBeforeEnd &&
       !this.props.fetchLineItemsInProgress
     ) {
       this.props.onFetchTransactionLineItems({
-        orderData: { bookingStart: startDate, bookingEnd: endDate },
+        orderData: { bookingStart: startDate, bookingEnd: endDate, extraItems: extraItems, guestCount },
         listingId,
         isOwnListing,
       });
@@ -63,12 +68,13 @@ export class BookingTimeFormComponent extends Component {
       rootClassName,
       className,
       price: unitPrice,
+      minBookingPrice,
       dayCountAvailableForBooking,
       marketplaceName,
+      extraItems,
       ...rest
     } = this.props;
     const classes = classNames(rootClassName || css.root, className);
-
     return (
       <FinalForm
         {...rest}
@@ -91,12 +97,19 @@ export class BookingTimeFormComponent extends Component {
             lineItems,
             fetchLineItemsInProgress,
             fetchLineItemsError,
+            priceRange
           } = fieldRenderProps;
 
           const startTime = values && values.bookingStartTime ? values.bookingStartTime : null;
           const endTime = values && values.bookingEndTime ? values.bookingEndTime : null;
+          const extraItem = values && values.extraItems ? values.extraItems : null;
           const startDate = startTime ? timestampToDate(startTime) : null;
           const endDate = endTime ? timestampToDate(endTime) : null;
+          const totalGuests = values && values.totalGuests ? values.totalGuests : null;
+          const minGuestRange = priceRange && Array.isArray(priceRange) && priceRange.length && priceRange[0].quantityRange.split("-");
+          const minGuest = Array.isArray(minGuestRange) ? minGuestRange?.length > 1 && minGuestRange[0] : null;
+          const maxGuestRange = priceRange && Array.isArray(priceRange) && priceRange.length && priceRange[priceRange.length - 1].quantityRange.split("-");
+          const maxGuest = Array.isArray(maxGuestRange) ? maxGuestRange?.length > 1 ? maxGuestRange[1] : maxGuestRange[0] : null;
 
           // This is the place to collect breakdown estimation data. See the
           // EstimatedCustomerBreakdownMaybe component to change the calculations
@@ -104,24 +117,60 @@ export class BookingTimeFormComponent extends Component {
           const breakdownData =
             startDate && endDate
               ? {
-                  startDate,
-                  endDate,
-                }
+                startDate,
+                endDate,
+                extraItem,
+                totalGuests,
+              }
               : null;
-
           const showEstimatedBreakdown =
             breakdownData && lineItems && !fetchLineItemsInProgress && !fetchLineItemsError;
 
           return (
             <Form onSubmit={handleSubmit} className={classes} enforcePagePreloadFor="CheckoutPage">
+              {/* <p className={css.submitButton} style={{ color: "blue" }}>
+                <FormattedMessage type='submit' inProgress={fetchLineItemsError}
+                  id={`Minimum Booking Amount is ${formatMoney(intl, minBookingPrice)}`}
+                />
+              </p> */}
+
               <FormSpy
                 subscription={{ values: true }}
                 onChange={values => {
                   this.handleOnChange(values);
                 }}
               />
+
+              <div className={css.guestCount}>
+                <label className={css.guestLabel}>Enter Guest Count</label>
+                <div className={css.notCount}>Babies up to +3 do not count</div>
+                <FieldSelect
+                  id={"totalGuests"}
+                  className={css.guestCountInput}
+                  name={"guestCount"}
+                  label={""}
+                  validate={required("this is required")}
+                >
+                  <option disabled value={""}>Select Package</option>
+                  {Array.isArray(priceRange) && priceRange.map((ele, index) => ele.quantityRange.split("-").length > 1 ?
+                    <option value={ele.quantityRange} key={index}>Entre {ele.quantityRange.split("-")[0]} y {ele.quantityRange.split("-")[1]} personas {formatMoney(intl, new Money(ele.amount, ele.currency))}</option>
+                    :
+                    <option value={ele.quantityRange} key={index}>Entre {ele.quantityRange} personas {formatMoney(intl, new Money(ele.amount, ele.currency))}</option>)}
+                </FieldSelect>
+
+                {/* <FieldTextInput
+                  id={"totalGuests"}
+                  className={css.guestCountInput}
+                  name={"guestCount"}
+                  type={"number"}
+                  placeholder={intl.formatMessage({ id: "SearchFieldForm.totalPersonsPlaceholder" })}
+                  validate={composeValidators(numberAtLeast(`Minimum Guests should be ${minGuest}`, minGuest), numberAtMax(`Maximum Guests should be ${maxGuest}`, maxGuest))}
+                /> */}
+              </div>
+
               {monthlyTimeSlots && timeZone ? (
                 <FieldDateAndTimeInput
+                  className={css.inputBox}
                   startDateInputProps={{
                     label: intl.formatMessage({ id: 'BookingTimeForm.bookingStartTitle' }),
                     placeholderText: startDatePlaceholder,
@@ -130,7 +179,6 @@ export class BookingTimeFormComponent extends Component {
                     label: intl.formatMessage({ id: 'BookingTimeForm.bookingEndTitle' }),
                     placeholderText: endDatePlaceholder,
                   }}
-                  className={css.bookingDates}
                   listingId={listingId}
                   onFetchTimeSlots={onFetchTimeSlots}
                   monthlyTimeSlots={monthlyTimeSlots}
@@ -142,6 +190,39 @@ export class BookingTimeFormComponent extends Component {
                   dayCountAvailableForBooking={dayCountAvailableForBooking}
                 />
               ) : null}
+
+              {/* <div className={css.countSection}>
+                <div className={css.countWrapper}>
+                  <div className={css.typeHeading}>Guests</div>
+                  <div className={css.functionWrapper}>
+                    <Button className={css.minusButton} onClick={()=>form.change("guestCount", values.guestCount - 1)}>-</Button>
+                    <span className={css.amountCount}>{values.guestCount}</span>
+                    <Button className={css.addButton} onClick={()=>form.change("guestCount", values.guestCount + 1)}>+</Button>
+                  </div>
+                </div>
+              </div> */}
+
+              {/* Extra Items */}
+              <div className={css.extraBox}>
+                <label>Extra's</label>
+                {extraItems && extraItems.length ?
+                  <div>
+                    {extraItems.map((item, index) => {
+                      const itemPrice = new Money(item.itemPrice.amount, item.itemPrice.currency)
+                      return (
+                        <FieldCheckbox
+                          className={css.extraItem}
+                          key={`extraItem-id${index}`}
+                          id={`extraItem-id${index}`}
+                          name={`extraItems`}
+                          label={`${item.itemName}  ${formatMoney(intl, itemPrice)}`}
+                          // class for item price "itemPrice"
+                          value={item}
+                        />
+                      )
+                    })}
+                  </div> : null}
+              </div>
 
               {showEstimatedBreakdown ? (
                 <div className={css.priceBreakdownContainer}>
@@ -181,9 +262,10 @@ export class BookingTimeFormComponent extends Component {
                   }
                 />
               </p>
-            </Form>
+            </Form >
           );
-        }}
+        }
+        }
       />
     );
   }

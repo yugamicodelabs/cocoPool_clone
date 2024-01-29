@@ -63,10 +63,13 @@ const TermsAndConditions = props => {
             ),
           },
         ]}
-        validate={requiredFieldArrayCheckbox(
-          intl.formatMessage({ id: 'AuthenticationPage.termsAndConditionsAcceptRequired' })
-        )}
+        // validate={requiredFieldArrayCheckbox(
+        //   intl.formatMessage({ id: 'AuthenticationPage.termsAndConditionsAcceptRequired' })
+        // )}
       />
+      <div>
+        {intl.formatMessage({ id: "AuthenticationPage.displayText" }, { termsLink })}
+      </div>
     </div>
   );
 };

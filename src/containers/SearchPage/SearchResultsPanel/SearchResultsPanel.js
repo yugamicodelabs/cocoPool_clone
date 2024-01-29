@@ -8,6 +8,7 @@ import { ListingCard, PaginationLinks } from '../../../components';
 import css from './SearchResultsPanel.module.css';
 
 const SearchResultsPanel = props => {
+  
   const {
     className,
     rootClassName,
@@ -17,6 +18,7 @@ const SearchResultsPanel = props => {
     setActiveListing,
     isMapVariant,
   } = props;
+
   const classes = classNames(rootClassName || css.root, className);
 
   const paginationLinks =
@@ -64,6 +66,7 @@ const SearchResultsPanel = props => {
             listing={l}
             renderSizes={cardRenderSizes(isMapVariant)}
             setActiveListing={setActiveListing}
+            listingIds={listings.map(l => l.id.uuid)}
           />
         ))}
         {props.children}

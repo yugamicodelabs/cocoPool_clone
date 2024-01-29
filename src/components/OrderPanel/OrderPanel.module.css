@@ -46,6 +46,7 @@
   width: 100%;
   margin-top: 0;
   margin-bottom: 0;
+
   @media (--viewportMedium) {
     margin-top: 0;
     margin-bottom: 5px;
@@ -81,8 +82,7 @@
     margin-bottom: 0;
   }
 
-  @media (--viewportLarge) {
-  }
+  @media (--viewportLarge) {}
 }
 
 .author {
@@ -189,6 +189,7 @@
   /* Contain repainting to this component only */
   /* 3D painting container helps scrolling */
   transform: translate3d(0, 0, 0);
+  justify-content: space-between;
 
   @media (--viewportMedium) {
     padding: 18px 60px 18px 60px;
@@ -220,9 +221,10 @@
     padding: 0;
   }
 }
+
 .priceContainerInCTA {
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   gap: unset;
 }
@@ -234,6 +236,10 @@
 
   margin-top: 0;
   margin-bottom: 0px;
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: var(--fontWeightSemiBold);
+
   @media (--viewportMedium) {
     margin-top: 0;
     margin-bottom: 0;
@@ -249,14 +255,14 @@
 
   margin-top: 0;
   margin-bottom: 0;
+  font-size: 14px;
 
   @media (--viewportMedium) {
     margin-top: 0;
     margin-bottom: 0;
   }
 
-  @media (--viewportLarge) {
-  }
+  @media (--viewportLarge) {}
 }
 
 .closedListingButton {
@@ -280,6 +286,7 @@
     padding: 0;
   }
 }
+
 .errorSidebar {
   color: var(--colorFail);
   padding: 0 24px;
@@ -287,4 +294,9 @@
   @media (--viewportMedium) {
     padding: 0;
   }
+}
+
+.bookingButton {
+  width: 200px;
+  min-height: 40px;
 }

@@ -19,6 +19,7 @@ const SectionMultiEnumMaybe = props => {
         options={options}
         selectedOptions={selectedOptions}
         twoColumns={options.length > 5}
+        heading={heading}
       />
     </div>
   );
