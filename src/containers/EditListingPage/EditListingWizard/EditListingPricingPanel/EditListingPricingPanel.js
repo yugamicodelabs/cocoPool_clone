@@ -13,14 +13,30 @@ import { H3, ListingLink } from '../../../../components';
 // Import modules from this directory
 import EditListingPricingForm from './EditListingPricingForm';
 import css from './EditListingPricingPanel.module.css';
+import { priceByGuestCount } from '../../../../constants';
+import { denormalisePriceRangeValues, normalisePriceRangeValues } from '../../../../util/data';
 
 const { Money } = sdkTypes;
 
 const getInitialValues = params => {
   const { listing } = params;
-  const { price } = listing?.attributes || {};
+  const { price, publicData } = listing.attributes || {};
+  const { priceRange, extraItems, isDiscount, minimumBookingAmount, ...rest } = publicData;
+  const updatedInitialData = denormalisePriceRangeValues(priceRange);
+  const listExtra = extraItems?.map(item => {
+    const { itemPrice, ...rest } = item;
+    Object.assign(rest, { itemPrice: new Money(itemPrice?.amount, itemPrice?.currency) })
+    return rest
+  });
 
-  return { price };
+  return {
+    // price,
+    priceRange: priceByGuestCount || [],
+    extraItems: listExtra || [],
+    isDiscount:  isDiscount ? isDiscount : "No",
+    minimumBookingAmount: minimumBookingAmount ? new Money(minimumBookingAmount?.amount, minimumBookingAmount?.currency) : null,
+    ...updatedInitialData
+  };
 };
 
 const EditListingPricingPanel = props => {
@@ -37,11 +53,12 @@ const EditListingPricingPanel = props => {
     panelUpdated,
     updateInProgress,
     errors,
+    values
   } = props;
 
   const classes = classNames(rootClassName || css.root, className);
-  const initialValues = getInitialValues(props);
   const isPublished = listing?.id && listing?.attributes?.state !== LISTING_STATE_DRAFT;
+  const initialValues = getInitialValues(props);
   const priceCurrencyValid =
     marketplaceCurrency && initialValues.price instanceof Money
       ? initialValues.price.currency === marketplaceCurrency
@@ -68,11 +85,22 @@ const EditListingPricingPanel = props => {
           className={css.form}
           initialValues={initialValues}
           onSubmit={values => {
-            const { price } = values;
-
+            const { price, priceRange, extraItems, isDiscount, minimumBookingAmount, ...rest } = values;
             // New values for listing attributes
+            const listExtra = extraItems?.map(item => {
+              const { itemPrice, ...rest } = item;
+              Object.assign(rest, { itemPrice: { amount: itemPrice?.amount, currency: itemPrice?.currency } })
+              return rest;
+            });
+            const updatedpriceRange = normalisePriceRangeValues(values);
             const updateValues = {
-              price,
+              price: new Money(updatedpriceRange[0]?.amount, updatedpriceRange[0]?.currency),
+              publicData: {
+                priceRange: updatedpriceRange,
+                extraItems: listExtra,
+                isDiscount,
+                minimumBookingAmount: { amount: minimumBookingAmount?.amount, currency: minimumBookingAmount?.currency }
+              }
             };
             onSubmit(updateValues);
           }}

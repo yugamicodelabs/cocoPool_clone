@@ -27,7 +27,7 @@ import { pathByRouteName, findRouteByRouteName } from '../../util/routes';
 
 export const NamedLinkComponent = props => {
   const routeConfiguration = useRouteConfiguration();
-  const { name, params, title } = props;
+  const { name, params, title, state } = props;
 
   const onOver = () => {
     const { component: Page } = findRouteByRouteName(name, routeConfiguration);
@@ -52,7 +52,7 @@ export const NamedLinkComponent = props => {
   };
 
   return (
-    <Link onMouseOver={onOver} onTouchStart={onOver} to={{ pathname, ...to }} {...aElemProps}>
+    <Link onMouseOver={onOver} onTouchStart={onOver} to={{ pathname, state, ...to }} {...aElemProps}>
       {children}
     </Link>
   );

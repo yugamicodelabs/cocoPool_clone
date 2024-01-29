@@ -4,6 +4,7 @@ import classNames from 'classnames';
 import { InlineTextButton, NamedLink } from '../../components';
 
 import css from './TabNavHorizontal.module.css';
+import { CUSTOMER } from '../../util/types';
 
 export const LIGHT_SKIN = 'light';
 export const DARK_SKIN = 'dark';
@@ -14,9 +15,9 @@ const Tab = props => {
   const { className, disabled, text, selected, onClick, linkProps, isDark } = props;
   const darkSkinClasses = isDark
     ? classNames(css.tabContentDarkSkin, {
-        [css.selectedTabContentDarkSkin]: selected,
-        [css.disabledDarkSkin]: disabled,
-      })
+      [css.selectedTabContentDarkSkin]: selected,
+      [css.disabledDarkSkin]: disabled,
+    })
     : null;
 
   const linkClasses = classNames(
@@ -68,15 +69,19 @@ Tab.propTypes = {
 };
 
 const TabNavHorizontal = props => {
-  const { className, rootClassName, tabRootClassName, tabs, skin } = props;
+  const { className, rootClassName, tabRootClassName, tabs, skin, currentUser } = props;
   const isDark = skin === DARK_SKIN;
   const classes = classNames(rootClassName || css.root, { [css.darkSkin]: isDark }, className);
   const tabClasses = tabRootClassName || css.tab;
+  const userType = currentUser && currentUser.id && currentUser?.attributes?.profile?.publicData?.userType
   return (
     <nav className={classes}>
       {tabs.map((tab, index) => {
         const key = typeof tab.text === 'string' ? tab.text : index;
-        return <Tab key={key} className={tabClasses} {...tab} isDark={isDark} />;
+        if (userType == CUSTOMER && tab.linkProps.name == "ManageListingsPage") { return null; }
+        else {
+          return <Tab key={key} className={tabClasses} {...tab} isDark={isDark} />;
+        }
       })}
     </nav>
   );

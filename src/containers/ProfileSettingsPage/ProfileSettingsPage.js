@@ -17,6 +17,7 @@ import FooterContainer from '../../containers/FooterContainer/FooterContainer';
 import ProfileSettingsForm from './ProfileSettingsForm/ProfileSettingsForm';
 
 import { updateProfile, uploadImage } from './ProfileSettingsPage.duck';
+import { types as sdkTypes } from "../../util/sdkLoader";
 import css from './ProfileSettingsPage.module.css';
 
 const onImageUploadHandler = (values, fn) => {
@@ -25,6 +26,8 @@ const onImageUploadHandler = (values, fn) => {
     fn({ id, imageId, file });
   }
 };
+
+const { LatLng: SDKLatLng, LatLngBounds: SDKLatLngBounds } = sdkTypes;
 
 export const ProfileSettingsPageComponent = props => {
   const config = useConfiguration();
@@ -42,7 +45,7 @@ export const ProfileSettingsPageComponent = props => {
   } = props;
 
   const handleSubmit = values => {
-    const { firstName, lastName, bio: rawBio } = values;
+    const { firstName, lastName, bio: rawBio, username, dni_nie_number, birthday, phoneNumber, postalCode, provence, city, number, street } = values;
 
     // Ensure that the optional bio is a string
     const bio = rawBio || '';
@@ -51,6 +54,22 @@ export const ProfileSettingsPageComponent = props => {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       bio,
+      publicData: {
+        username,
+        dni_nie_number,
+        birthday,
+        phoneNumber,
+        userAddress: {
+          street,
+          apartmentNumber: number,
+          city,
+          provence,
+          postalCode,
+        }
+      },
+      protectedData: {
+        phoneNumber
+      }
     };
     const uploadedImage = props.image;
 
@@ -64,7 +83,9 @@ export const ProfileSettingsPageComponent = props => {
   };
 
   const user = ensureCurrentUser(currentUser);
-  const { firstName, lastName, bio } = user.attributes.profile;
+  const { firstName, lastName, bio, publicData } = user.attributes.profile;
+  const { username, userAddress, dni_nie_number, birthday, phoneNumber } = publicData || {};
+  const { apartmentNumber: number, city, provence, postalCode, street } = userAddress || {};
   const profileImageId = user.profileImage ? user.profileImage.id : null;
   const profileImage = image || { imageId: profileImageId };
 
@@ -72,7 +93,22 @@ export const ProfileSettingsPageComponent = props => {
     <ProfileSettingsForm
       className={css.form}
       currentUser={currentUser}
-      initialValues={{ firstName, lastName, bio, profileImage: user.profileImage }}
+      initialValues={{
+        firstName,
+        lastName,
+        bio,
+        profileImage: user.profileImage,
+        username,
+        dni_nie_number,
+        birthday,
+        phoneNumber,
+        number,
+        city, 
+        provence, 
+        postalCode, 
+        street,
+        ...userAddress
+      }}
       profileImage={profileImage}
       onImageUpload={e => onImageUploadHandler(e, onImageUpload)}
       uploadInProgress={uploadInProgress}

@@ -48,6 +48,7 @@ import SearchResultsPanel from './SearchResultsPanel/SearchResultsPanel';
 import NoSearchResultsMaybe from './NoSearchResultsMaybe/NoSearchResultsMaybe';
 
 import css from './SearchPage.module.css';
+import { ensureUser } from '../../util/data';
 
 const MODAL_BREAKPOINT = 768; // Search is in modal on mobile layout
 const SEARCH_WITH_MAP_DEBOUNCE = 300; // Little bit of debounce before search is initiated.
@@ -247,6 +248,7 @@ export class SearchPageComponent extends Component {
       onActivateListing,
       routeConfiguration,
       config,
+      currentUser
     } = this.props;
 
     const { listingFields: listingFieldsConfig } = config?.listing || {};
@@ -254,6 +256,8 @@ export class SearchPageComponent extends Component {
 
     const activeListingTypes = config?.listing?.listingTypes.map(config => config.listingType);
     const marketplaceCurrency = config.currency;
+    const ensuredUser = ensureUser(currentUser);
+    const { userType } = (ensuredUser && ensuredUser.id && ensuredUser.attributes.profile.publicData) || {};
 
     // Page transition might initially use values from previous search
     // urlQueryParams doesn't contain page specific url params
@@ -365,6 +369,7 @@ export class SearchPageComponent extends Component {
         totalItems={totalItems}
         location={location}
         resetAll={this.resetAll}
+        userType={userType}
       />
     );
 
@@ -615,6 +620,8 @@ const mapStateToProps = state => {
     searchParams,
     activeListingId,
   } = state.SearchPage;
+  const { currentUser } = state.user;
+
   const listings = getListingsById(state, currentPageResultIds);
 
   return {
@@ -625,6 +632,7 @@ const mapStateToProps = state => {
     searchListingsError,
     searchParams,
     activeListingId,
+    currentUser
   };
 };
 

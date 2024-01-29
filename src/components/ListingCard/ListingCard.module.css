@@ -13,14 +13,28 @@
 
 .aspectRatioWrapper {
   transition: var(--transitionStyleButton);
-  background: var(--colorGrey100); /* Loading BG color */
+  background: var(--colorGrey100);
+  /* Loading BG color */
   border-radius: var(--borderRadiusMedium);
+  position: relative;
 
   @media (--viewportMedium) {
     &:hover {
       transform: scale(1.02);
       box-shadow: var(--boxShadowListingCard);
     }
+  }
+
+  & .priceBox {
+    gap: 3px;
+    right: 20px;
+    bottom: 20px;
+    color: #fff;
+    display: flex;
+    padding: 10px;
+    position: absolute;
+    align-items: center;
+    background-color: #0009;
   }
 }
 
@@ -120,4 +134,35 @@
   /* use break-word if available */
   word-break: break-word;
   hyphens: auto;
+}
+
+.peopleLocation {
+  gap: 10px;
+  display: flex;
+  margin: 10px 0;
+  align-items: center;
+
+  & .iconHeading {
+    gap: 5px;
+    display: flex;
+    align-items: center;
+
+    & .locationIcon {
+      & svg {
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+}
+
+.reviewsBox {
+  gap: 5px;
+  display: flex;
+
+  & .starIcon {
+    & svg {
+      margin-top: -3px;
+    }
+  }
 }

@@ -18,8 +18,7 @@
   }
 }
 
-.sectionTitle {
-}
+.sectionTitle {}
 
 .lastSection {
   margin-bottom: 69px;
@@ -49,6 +48,7 @@
 
 .label {
   width: var(--ProfileSettingsForm_avatarSize);
+
   @media (--viewportMedium) {
     width: var(--ProfileSettingsForm_avatarSizeDesktop);
   }
@@ -96,6 +96,7 @@
     display: none;
   }
 }
+
 .avatarPlaceholderText {
   display: none;
 
@@ -178,7 +179,8 @@
 
   /* Image fitted to container */
   object-fit: cover;
-  background-color: var(--colorGrey100); /* Loading BG color */
+  background-color: var(--colorGrey100);
+  /* Loading BG color */
   border-radius: calc(var(--ProfileSettingsForm_avatarSize) / 2);
   overflow: hidden;
 
@@ -253,14 +255,31 @@
   @media (--viewportMedium) {
     margin-top: 24px;
   }
+
+  @media (max-width:575px) {
+    flex-direction: column;
+  }
 }
 
 .firstName {
-  width: calc(34% - 9px);
+  width: calc(50% - 9px);
+
+  @media (max-width:575px) {
+    width: 100%;
+  }
 }
 
 .lastName {
-  width: calc(66% - 9px);
+  width: calc(50% - 9px);
+
+  @media (max-width:575px) {
+    width: 100%;
+    margin-top: 30px;
+  }
+}
+
+.inputBox {
+  margin-top: 30px;
 }
 
 .bioInfo {
@@ -276,4 +295,43 @@
 .submitButton {
   margin-top: 24px;
   margin-bottom: 56px;
+}
+
+.locationAutocompleteInput {}
+
+.locationAutocompleteInputIcon {
+  display: none;
+}
+
+.predictionsRoot {
+  position: absolute;
+  width: 100%;
+  top: 36px;
+  left: 0;
+  background-color: var(--marketplaceColor);
+  border-bottom-left-radius: var(--borderRadius);
+  border-bottom-right-radius: var(--borderRadius);
+  box-shadow: var(--boxShadowPopup);
+  z-index: calc(var(--zIndexPopup) + 1);
+
+  @media (--viewportMedium) {
+    top: 40px;
+  }
+}
+
+.validLocation {}
+
+
+.building {
+  flex-shrink: 0;
+  margin-bottom: 24px;
+
+  @media (--viewportMedium) {
+    margin-bottom: 32px;
+  }
+}
+
+.locationAddress {
+  flex-shrink: 0;
+  margin-top: 30px;
 }

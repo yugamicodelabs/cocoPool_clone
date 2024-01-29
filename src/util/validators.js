@@ -7,6 +7,8 @@ const { LatLng, Money } = sdkTypes;
 export const PASSWORD_MIN_LENGTH = 8;
 export const PASSWORD_MAX_LENGTH = 256;
 
+export const TELEPHONE_MIN_LENGTH = 9;
+
 const isNonEmptyString = val => {
   return typeof val === 'string' && val.trim().length > 0;
 };
@@ -79,7 +81,8 @@ export const autocompletePlaceSelected = message => value => {
   const selectedPlaceIsValid =
     value &&
     value.selectedPlace &&
-    value.selectedPlace.address &&
+    value.selectedPlace.address
+    &&
     value.selectedPlace.origin instanceof LatLng;
   return selectedPlaceIsValid ? VALID : message;
 };
@@ -123,6 +126,11 @@ export const numberAtLeast = (message, minNumber) => value => {
   const valueNum = parseNum(value);
   return typeof valueNum === 'number' && valueNum >= minNumber ? VALID : message;
 };
+
+export const numberAtMax = (message, maxNumber) => value =>{
+  const valueNum = parseNum(value);
+  return typeof valueNum === 'number' && valueNum <= maxNumber ? VALID : message;
+}
 
 export const ageAtLeast = (message, minYears) => value => {
   const { year, month, day } = value;

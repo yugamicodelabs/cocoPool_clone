@@ -19,9 +19,11 @@ import { Button, Form, AspectRatioWrapper } from '../../../../components';
 
 // Import modules from this directory
 import ListingImage from './ListingImage';
+import { withViewport } from '../../../../util/uiHelpers';
 import css from './EditListingPhotosForm.module.css';
 
 const ACCEPT_IMAGES = 'image/*';
+const MAX_MOBILE_SCREEN_WIDTH = 1024;
 
 const ImageUploadError = props => {
   return props.uploadOverLimit ? (
@@ -60,15 +62,17 @@ export const FieldAddImage = props => {
   return (
     <Field form={null} {...rest}>
       {fieldprops => {
-        const { accept, input, label, disabled: fieldDisabled } = fieldprops;
+        const { accept, input, label, disabled: fieldDisabled, multiple = true } = fieldprops;
         const { name, type } = input;
         const onChange = e => {
-          const file = e.target.files[0];
-          formApi.change(`addImage`, file);
-          formApi.blur(`addImage`);
-          onImageUploadHandler(file);
+          const files = new Array(...e.target.files);
+          files.map(file => {
+            formApi.change(`addImage`, file);
+            formApi.blur(`addImage`);
+            onImageUploadHandler(file);
+          });
         };
-        const inputProps = { accept, id: name, name, onChange, type };
+        const inputProps = { accept, id: name, name, onChange, type, multiple };
         return (
           <div className={css.addImageWrapper}>
             <AspectRatioWrapper width={aspectWidth} height={aspectHeight}>
@@ -115,6 +119,35 @@ export const EditListingPhotosFormComponent = props => {
   const [state, setState] = useState({ imageUploadRequested: false });
   const [submittedImages, setSubmittedImages] = useState([]);
 
+  // const handleTouchStart = (e, index) => {
+  //   // Store the index for later use
+  //   console.log(index)
+  //   e.currentTarget.setAttribute('data-touch-index', index);
+  // };
+
+  // const handleTouchMove = (e) => {
+  //   // e.preventDefault();
+  //   const touchIndex = e.currentTarget.getAttribute('data-touch-index');
+  //   if (touchIndex !== null) {
+  //     // Perform any additional logic for touch move
+  //     console.log(`Touch move on image ${touchIndex}`);
+  //   }
+  // };
+
+  // const handleTouchEnd = (e, dropIndex, images, form) => {
+  //   e.preventDefault();
+  //   const touchIndex = e.currentTarget.getAttribute('data-touch-index');
+  //   if (touchIndex !== null) {
+  //     // Perform any additional logic for touch end
+  //     console.log(touchIndex, dropIndex, "okokokokok")
+  //     const newImages = [...images];
+  //     const [draggedImage] = newImages.splice(touchIndex, 1);
+  //     newImages.splice(dropIndex, 0, draggedImage);
+  //     form.change('images', newImages)
+  //     e.currentTarget.removeAttribute('data-touch-index');
+  //   }
+  // };
+
   const onImageUploadHandler = file => {
     const { listingImageConfig, onImageUpload } = props;
     if (file) {
@@ -129,10 +162,27 @@ export const EditListingPhotosFormComponent = props => {
         });
     }
   };
+  const handleDragStart = (e, index) => {
+    e.dataTransfer.setData('index', index);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e, dropIndex, images, form) => {
+    e.preventDefault();
+    const dragIndex = e.dataTransfer.getData('index');
+    const newImages = [...images];
+    const [draggedImage] = newImages.splice(dragIndex, 1);
+    newImages.splice(dropIndex, 0, draggedImage);
+    form.change('images', newImages)
+  };
 
   return (
     <FinalForm
       {...props}
+      keepDirtyOnReinitialize={true}
       mutators={{ ...arrayMutators }}
       render={formRenderProps => {
         const {
@@ -152,7 +202,10 @@ export const EditListingPhotosFormComponent = props => {
           errors,
           values,
           listingImageConfig,
+          viewport
         } = formRenderProps;
+
+        const isMobileLayout = viewport?.width < MAX_MOBILE_SCREEN_WIDTH;
 
         const images = values.images;
         const { aspectWidth = 1, aspectHeight = 1, variantPrefix } = listingImageConfig;
@@ -204,22 +257,32 @@ export const EditListingPhotosFormComponent = props => {
               >
                 {({ fields }) =>
                   fields.map((name, index) => (
-                    <FieldListingImage
-                      key={name}
-                      name={name}
-                      onRemoveImage={imageId => {
-                        fields.remove(index);
-                        onRemoveImage(imageId);
-                      }}
-                      intl={intl}
-                      aspectWidth={aspectWidth}
-                      aspectHeight={aspectHeight}
-                      variantPrefix={variantPrefix}
-                    />
+                    <div
+                      key={index}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, index)}
+                      onDragOver={(e) => handleDragOver(e)}
+                      onDrop={(e) => handleDrop(e, index, images, form)}
+                      // onTouchStart={(e) => handleTouchStart(e, index)}
+                      // onTouchMove={(e) => handleTouchMove(e)}
+                      // onTouchEnd={(e) => handleTouchEnd(e, index, images, form)}
+                    >
+                      <FieldListingImage
+                        key={name}
+                        name={name}
+                        onRemoveImage={imageId => {
+                          fields.remove(index);
+                          onRemoveImage(imageId);
+                        }}
+                        intl={intl}
+                        aspectWidth={aspectWidth}
+                        aspectHeight={aspectHeight}
+                        variantPrefix={variantPrefix}
+                      />
+                    </div>
                   ))
                 }
               </FieldArray>
-
               <FieldAddImage
                 id="addImage"
                 name="addImage"
@@ -294,4 +357,4 @@ EditListingPhotosFormComponent.propTypes = {
   listingImageConfig: object.isRequired,
 };
 
-export default compose(injectIntl)(EditListingPhotosFormComponent);
+export default compose(injectIntl, withViewport)(EditListingPhotosFormComponent);

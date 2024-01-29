@@ -430,6 +430,8 @@ export const AuthenticationPageComponent = props => {
     [css.hideOnMobile]: showEmailVerification,
   });
 
+  // console.log(tosAssetsData, "my DATA")
+
   return (
     <Page
       title={schemaTitle}
@@ -582,8 +584,8 @@ const mapStateToProps = state => {
     inProgress: privacyFetchInProgress,
     error: privacyFetchError,
   } = state.hostedAssets || {};
-  const { pageAssetsData: tosAssetsData, inProgress: tosFetchInProgress, error: tosFetchError } =
-    state.hostedAssets || {};
+  const { pageAssetsData: tosAssetsData, inProgress: tosFetchInProgress, error: tosFetchError } = state.hostedAssets || {};
+  // console.log(state.hostedAssets, "MYYY");
 
   return {
     authInProgress: authenticationInProgress(state),

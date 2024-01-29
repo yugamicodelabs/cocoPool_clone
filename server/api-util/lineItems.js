@@ -23,30 +23,29 @@ const getItemQuantityAndLineItems = (orderData, publicData, currency) => {
   const isPickup = deliveryMethod === 'pickup';
   const { shippingPriceInSubunitsOneItem, shippingPriceInSubunitsAdditionalItems } =
     publicData || {};
-
   // Calculate shipping fee if applicable
   const shippingFee = isShipping
     ? calculateShippingFee(
-        shippingPriceInSubunitsOneItem,
-        shippingPriceInSubunitsAdditionalItems,
-        currency,
-        quantity
-      )
+      shippingPriceInSubunitsOneItem,
+      shippingPriceInSubunitsAdditionalItems,
+      currency,
+      quantity
+    )
     : null;
 
   // Add line-item for given delivery method.
   // Note: by default, pickup considered as free.
   const deliveryLineItem = !!shippingFee
     ? [
-        {
-          code: 'line-item/shipping-fee',
-          unitPrice: shippingFee,
-          quantity: 1,
-          includeFor: ['customer', 'provider'],
-        },
-      ]
+      {
+        code: 'line-item/shipping-fee',
+        unitPrice: shippingFee,
+        quantity: 1,
+        includeFor: ['customer', 'provider'],
+      },
+    ]
     : isPickup
-    ? [
+      ? [
         {
           code: 'line-item/pickup-fee',
           unitPrice: new Money(0, currency),
@@ -54,7 +53,7 @@ const getItemQuantityAndLineItems = (orderData, publicData, currency) => {
           includeFor: ['customer', 'provider'],
         },
       ]
-    : [];
+      : [];
 
   return { quantity, extraLineItems: deliveryLineItem };
 };
@@ -65,11 +64,10 @@ const getItemQuantityAndLineItems = (orderData, publicData, currency) => {
  * @param {*} orderData should contain quantity
  */
 const getHourQuantityAndLineItems = orderData => {
-  const { bookingStart, bookingEnd } = orderData || {};
+  const { bookingStart, bookingEnd, extraItems } = orderData || {};
   const quantity =
     bookingStart && bookingEnd ? calculateQuantityFromHours(bookingStart, bookingEnd) : null;
-
-  return { quantity, extraLineItems: [] };
+  return { quantity, extraLineItems: [], extraItems };
 };
 
 /**
@@ -113,9 +111,14 @@ const getDateRangeQuantityAndLineItems = (orderData, code) => {
  * @param {Object} providerCommission
  * @returns {Array} lineItems
  */
-exports.transactionLineItems = (listing, orderData, providerCommission) => {
+exports.transactionLineItems = (listing, orderData, providerCommission, customerCommission) => {
   const publicData = listing.attributes.publicData;
-  const unitPrice = listing.attributes.price;
+  const priceRange = publicData?.priceRange;
+  const guestRange = orderData?.guestCount;
+  const getPriceByGuestCount = priceRange.filter(item => item.quantityRange == guestRange);
+  const unitAmount = getPriceByGuestCount.length > 0 ? getPriceByGuestCount[0]?.amount : priceRange[priceRange.length - 1]?.amount;
+  const unitCurrency = getPriceByGuestCount.length > 0 ? getPriceByGuestCount[0]?.currency : priceRange[priceRange.length - 1]?.currency;
+  const unitPrice = new Money(unitAmount, unitCurrency);
   const currency = unitPrice.currency;
 
   /**
@@ -140,12 +143,12 @@ exports.transactionLineItems = (listing, orderData, providerCommission) => {
     unitType === 'item'
       ? getItemQuantityAndLineItems(orderData, publicData, currency)
       : unitType === 'hour'
-      ? getHourQuantityAndLineItems(orderData)
-      : ['day', 'night'].includes(unitType)
-      ? getDateRangeQuantityAndLineItems(orderData, code)
-      : {};
+        ? getHourQuantityAndLineItems(orderData)
+        : ['day', 'night'].includes(unitType)
+          ? getDateRangeQuantityAndLineItems(orderData, code)
+          : {};
 
-  const { quantity, extraLineItems } = quantityAndExtraLineItems;
+  const { quantity, extraLineItems, extraItems } = quantityAndExtraLineItems;
 
   // Throw error if there is no quantity information given
   if (!quantity) {
@@ -181,22 +184,53 @@ exports.transactionLineItems = (listing, orderData, providerCommission) => {
     return -1 * percentage;
   };
 
+  const getPositiveNegation = percentage =>{
+    return 1 * percentage;
+  }
+
   // Note: extraLineItems for product selling (aka shipping fee)
   //       is not included to commission calculation.
   const providerCommissionMaybe = hasCommissionPercentage(providerCommission)
     ? [
-        {
-          code: 'line-item/provider-commission',
-          unitPrice: calculateTotalFromLineItems([order]),
-          percentage: getNegation(providerCommission.percentage),
-          includeFor: ['provider'],
-        },
-      ]
+      {
+        code: 'line-item/provider-commission',
+        unitPrice: calculateTotalFromLineItems([order]),
+        percentage: getNegation(providerCommission.percentage),
+        includeFor: ['provider'],
+      },
+    ]
     : [];
+  
+  const customerCommissionMaybe = hasCommissionPercentage(customerCommission) ?
+  [{
+    code: 'line-item/customer-commission',
+    unitPrice: calculateTotalFromLineItems([order]),
+    percentage: getPositiveNegation(customerCommission.percentage),
+    includeFor: ['customer']
+  }] 
+  : [];
+
+  const extraItemsMaybe = Array.isArray(extraItems) && extraItems.length ?
+    extraItems.map(item => {
+      return {
+        code: `line-item/${item.itemName}`,
+        quantity: 1,
+        unitPrice: new Money(item.itemPrice.amount, item.itemPrice.currency),
+        includeFor: ['customer', 'provider']
+      }
+    })
+    : [];
+  
+  const guestCountMaybe = guestRange ? [{
+    code: guestRange.split("-").length > 1 ? 'line-item/guest-count-upto' : 'line-item/guest-count-more-than',
+    quantity: guestRange.split("-").length > 1 ? guestRange.split("-")[1] : parseInt(guestRange.split("-")[0]),
+    unitPrice: new Money(0, "EUR"),
+    includeFor: ['customer', 'provider']
+  }] : [];
 
   // Let's keep the base price (order) as first line item and provider's commission as last one.
   // Note: the order matters only if OrderBreakdown component doesn't recognize line-item.
-  const lineItems = [order, ...extraLineItems, ...providerCommissionMaybe];
+  const lineItems = [order, ...extraLineItems, ...providerCommissionMaybe, ...customerCommissionMaybe, ...extraItemsMaybe, ...guestCountMaybe];
 
   return lineItems;
 };

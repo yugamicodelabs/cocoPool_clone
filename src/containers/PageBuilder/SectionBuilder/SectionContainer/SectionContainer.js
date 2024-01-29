@@ -23,7 +23,7 @@ const SectionContainer = props => {
         />
       ) : null}
 
-      <div className={css.sectionContent}>{children}</div>
+      <div className={id == "hero" ? css.heroHeading : css.sectionContent}>{children}</div>
     </Tag>
   );
 };

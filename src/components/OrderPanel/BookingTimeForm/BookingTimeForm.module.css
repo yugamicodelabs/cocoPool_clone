@@ -6,8 +6,9 @@
 }
 
 .bookingBreakdownTitle {
-  letter-spacing: 1px;
-  font-weight: var(--fontWeightMedium);
+  font-weight: 600;
+  font-size: 16px;
+  text-transform: capitalize;
 }
 
 .totalDivider {
@@ -75,5 +76,112 @@
   @media (--viewportMedium) {
     padding: 0;
     margin-top: 72px;
+  }
+}
+
+.countSection {
+  border: 1px solid #b4b4b4;
+  width: 300px;
+  border-radius: 15px;
+
+  & .countWrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px;
+
+    & .typeHeading {
+      font-size: 16px;
+      font-weight: 500;
+      color: #000000;
+    }
+
+    & .functionWrapper {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+
+      & .minusButton {
+        color: #ffffff;
+        font-size: 31px;
+        font-weight: 500;
+        background-color: #ffd92f;
+        border-radius: 100%;
+        padding: 5px 12px;
+        border: 1px solid #096900;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      & .addButton {
+        color: #ffffff;
+        font-size: 20px;
+        font-weight: 500;
+        background-color: #ffd92f;
+        border-radius: 100%;
+        padding: 5px 12px;
+        border: 1px solid #096900;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      & .amountCount {
+        font-size: 20px;
+        font-weight: 600;
+        color: #000000;
+      }
+    }
+  }
+}
+
+.inputBox {
+  margin-top: 30px;
+
+  @media(--viewportMedium) {
+    margin-top: 24px;
+  }
+
+  @media(max-width: 768px) {
+    /* padding: 0 24px; */
+  }
+}
+
+.extraItem {
+  & label {
+    & span {
+      font-size: 16px;
+    }
+  }
+
+  & .itemPrice {
+    margin-left: 10px;
+  }
+}
+
+.guestCount {
+  @media(max-width: 768px) {
+    padding: 0 24px;
+  }
+}
+
+.extraBox {
+  margin-top: 24px;
+
+  @media(max-width: 768px) {
+    padding: 24px 24px 0;
+  }
+}
+
+.guestCount {
+  & .guestLabel {
+    padding: 0;
+  }
+
+  & .notCount {
+    font-size: 14px;
+    margin: 6px 0;
+    color: #a8a5a5;
   }
 }

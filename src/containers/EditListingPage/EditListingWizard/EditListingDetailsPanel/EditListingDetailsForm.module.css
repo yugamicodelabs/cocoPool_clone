@@ -49,6 +49,7 @@
 .selectedLabel {
   composes: label from global;
 }
+
 .selectedValue {
   margin-top: 0;
   margin-bottom: 6px;
@@ -73,5 +74,40 @@
     display: inline-block;
     width: 241px;
     margin-top: 100px;
+  }
+}
+
+.checkboxWrapper {
+  & fieldset {
+    & legend {
+      margin-bottom: 15px;
+    }
+
+    & ul {
+      display: grid;
+      row-gap: 10px;
+      column-gap: 30px;
+      grid-template-columns: repeat(2, 1fr);
+
+      @media(max-width: 1024px) {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      @media(max-width: 900px) {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      @media(max-width: 460px) {
+        grid-template-columns: repeat(1, 1fr);
+      }
+
+      & li {
+        padding: 0;
+
+        & label {
+          margin: 0;
+        }
+      }
+    }
   }
 }

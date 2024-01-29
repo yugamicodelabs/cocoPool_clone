@@ -1,6 +1,8 @@
 import isArray from 'lodash/isArray';
 import reduce from 'lodash/reduce';
 import { sanitizeEntity } from './sanitize';
+import { priceByGuestCount } from '../constants';
+import { types as sdkTypes } from "../util/sdkLoader";
 // NOTE: This file imports sanitize.js, which may lead to circular dependency
 
 /**
@@ -445,4 +447,31 @@ export const humanizeLineItemCode = code => {
   const lowercase = code.replace(/^line-item\//, '').replace(/-/g, ' ');
 
   return lowercase.charAt(0).toUpperCase() + lowercase.slice(1);
+};
+
+export const normalisePriceRangeValues = values => {
+  const newEnteties = [];
+  const filteredRange = priceByGuestCount.filter((option, index) => values[option.value]);
+  for (let i of filteredRange) {
+    if (values[i.value]) {
+      newEnteties.push({
+        quantityRange: i.value,
+        amount: values[i.value + "-price"]?.amount,
+        currency: values[i.value + "-price"]?.currency
+      });
+    }
+  }
+  return newEnteties;
+};
+
+export const denormalisePriceRangeValues = priceRange =>{
+  const newEnteties = {};
+  const { Money } = sdkTypes;
+  if(priceRange && Array.isArray(priceRange) && priceRange.length)
+  {
+    for (let i of priceRange) {
+      Object.assign(newEnteties, { [i.quantityRange]: true, [i.quantityRange + "-price"]: new Money(i.amount, i.currency)})
+    }
+  }
+  return newEnteties;
 };

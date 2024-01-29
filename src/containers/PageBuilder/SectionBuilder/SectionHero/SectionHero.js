@@ -5,7 +5,10 @@ import classNames from 'classnames';
 import Field, { hasDataInFields } from '../../Field';
 
 import SectionContainer from '../SectionContainer';
+import SearchComponent from './SeachFieldForm/SearchFieldForm';
 import css from './SectionHero.module.css';
+import { compose } from 'redux';
+import { injectIntl } from 'react-intl';
 
 // Section component for a website's hero section
 // The Section Hero doesn't have any Blocks by default, all the configurations are made in the Section Hero settings
@@ -20,6 +23,8 @@ const SectionHero = props => {
     appearance,
     callToAction,
     options,
+    intl,
+    sectionName
   } = props;
 
   // If external mapping has been included for fields
@@ -44,6 +49,13 @@ const SectionHero = props => {
           <Field data={callToAction} className={defaultClasses.ctaButton} options={fieldOptions} />
         </header>
       ) : null}
+      {/* Search Fields */}
+      {sectionName === "landing-hero" ?
+        <SearchComponent
+          onSubmit={() => { }}
+          intl={intl}
+        />
+        : null}
     </SectionContainer>
   );
 };
@@ -83,4 +95,4 @@ SectionHero.propTypes = {
   options: propTypeOption,
 };
 
-export default SectionHero;
+export default compose(injectIntl)(SectionHero);

@@ -7,9 +7,10 @@ import classNames from 'classnames';
 
 import { FormattedMessage, injectIntl, intlShape } from '../../../util/reactIntl';
 import * as validators from '../../../util/validators';
-import { Form, PrimaryButton, FieldTextInput } from '../../../components';
+import { Form, PrimaryButton, FieldTextInput, FieldSelect, FieldPhoneNumberInput } from '../../../components';
 
 import css from './SignupForm.module.css';
+import { discoveredServiceVia, whatYouWantToDo } from '../../../constants';
 
 const SignupFormComponent = props => (
   <FinalForm
@@ -74,26 +75,40 @@ const SignupFormComponent = props => (
         passwordMaxLength
       );
 
+      //Telephone
+      const telephoneRequiredMessage = validators.requiredStringNoTrim(intl.formatMessage({
+        id: 'SignupForm.phoneNumberRequired',
+      }))
+
+      const telephoneMinLength = validators.minLength(
+        intl.formatMessage({ id: "SignupForm.telephoneTooShort" }, { minLength: validators.TELEPHONE_MIN_LENGTH }),
+        validators.TELEPHONE_MIN_LENGTH,
+      )
+      const telephoneMaxLength = validators.maxLength(
+        intl.formatMessage({ id: "SignupForm.telephoneTooLong" }, { minLength: validators.TELEPHONE_MIN_LENGTH }),
+        validators.TELEPHONE_MIN_LENGTH,
+      )
+
+      const telephoneValidators = validators.composeValidators(
+        telephoneRequiredMessage,
+        telephoneMinLength,
+        telephoneMaxLength
+      )
+
       const classes = classNames(rootClassName || css.root, className);
       const submitInProgress = inProgress;
       const submitDisabled = invalid || submitInProgress;
 
+
+      const optionPlaceHolder = intl.formatMessage({ id: "SignupForm.optionPlaceHolder" })
+      const howKnowCocopoolLabel = intl.formatMessage({ id: "SignupForm.howKnowCocopoolLabel" })
+      const whatYouWantToDoLabel = intl.formatMessage({ id: "SignupForm.whatYouWantToDoLabel" })
+      const howKnowCocopoolRequiredMessage = validators.required(intl.formatMessage({ id: "SignupForm.howKnowCocopoolrequiredMessage" }))
+      const whatYouWantToDoRequiredMessage = validators.required(intl.formatMessage({ id: "SignupForm.whatYouWantToDoRequiredMessage" }))
+      // console.log(values, 'Values')
       return (
         <Form className={classes} onSubmit={handleSubmit}>
           <div>
-            <FieldTextInput
-              type="email"
-              id={formId ? `${formId}.email` : 'email'}
-              name="email"
-              autoComplete="email"
-              label={intl.formatMessage({
-                id: 'SignupForm.emailLabel',
-              })}
-              placeholder={intl.formatMessage({
-                id: 'SignupForm.emailPlaceholder',
-              })}
-              validate={validators.composeValidators(emailRequired, emailValid)}
-            />
             <div className={css.name}>
               <FieldTextInput
                 className={css.firstNameRoot}
@@ -134,6 +149,20 @@ const SignupFormComponent = props => (
             </div>
             <FieldTextInput
               className={css.password}
+              type="email"
+              id={formId ? `${formId}.email` : 'email'}
+              name="email"
+              autoComplete="email"
+              label={intl.formatMessage({
+                id: 'SignupForm.emailLabel',
+              })}
+              placeholder={intl.formatMessage({
+                id: 'SignupForm.emailPlaceholder',
+              })}
+              validate={validators.composeValidators(emailRequired, emailValid)}
+            />
+            <FieldTextInput
+              className={css.password}
               type="password"
               id={formId ? `${formId}.password` : 'password'}
               name="password"
@@ -146,10 +175,62 @@ const SignupFormComponent = props => (
               })}
               validate={passwordValidators}
             />
+            <FieldPhoneNumberInput
+              className={css.phoneNumber}
+              type="Number"
+              id={formId ? `${formId}.phoneNumber` : 'phoneNumber'}
+              name="phoneNumber"
+              autoComplete="phoneNumber"
+              label={intl.formatMessage({
+                id: 'SignupForm.phoneNumberLabel',
+              })}
+              placeholder={intl.formatMessage({
+                id: 'SignupForm.phoneNumberPlaceholder',
+              })}
+              validate={telephoneValidators}
+            />
+            <FieldSelect
+              className={css.password}
+              id="discoveredServiceVia"
+              name="discoveredServiceVia"
+              label={howKnowCocopoolLabel}
+              validate={howKnowCocopoolRequiredMessage}
+            >
+              <option
+                disabled
+                value=""
+              >
+                {optionPlaceHolder}
+              </option>
+              {discoveredServiceVia.map((item) =>
+                <option
+                  key={item.key}
+                  value={item.value}
+                >
+                  {item.option}
+                </option>
+              )}
+            </FieldSelect>
+            <FieldSelect
+              className={css.password}
+              id="whatToDo"
+              name="whatToDo"
+              label={whatYouWantToDoLabel}
+              validate={whatYouWantToDoRequiredMessage}
+            >
+              <option disabled value="">{optionPlaceHolder}</option>
+              {whatYouWantToDo.map((item) =>
+                <option
+                  key={item.key}
+                  value={item.value}
+                >
+                  {item.option}
+                </option>
+              )}
+            </FieldSelect>
           </div>
-
           <div className={css.bottomWrapper}>
-            {termsAndConditions}
+            <span className={css.termBox}>{termsAndConditions}</span>
             <PrimaryButton type="submit" inProgress={submitInProgress} disabled={submitDisabled}>
               <FormattedMessage id="SignupForm.signUp" />
             </PrimaryButton>

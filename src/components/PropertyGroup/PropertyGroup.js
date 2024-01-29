@@ -52,15 +52,14 @@ const Item = props => {
 };
 
 const PropertyGroup = props => {
-  const { rootClassName, className, id, options, selectedOptions, twoColumns } = props;
+  const { rootClassName, className, id, options, selectedOptions, twoColumns, heading } = props;
   const classes = classNames(rootClassName || css.root, className);
   const listClasses = twoColumns ? classNames(classes, css.twoColumns) : classes;
-
   const checked = checkSelected(options, selectedOptions);
-
+  
   return (
     <ul className={listClasses}>
-      {checked.map(option => (
+      {checked.filter(ele => heading == "Regulation" ? ele : ele.isSelected == true).map(option => (
         <Item key={`${id}.${option.key}`} label={option.label} isSelected={option.isSelected} />
       ))}
     </ul>
