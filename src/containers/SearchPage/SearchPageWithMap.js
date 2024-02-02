@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { array, arrayOf, bool, func, object, oneOf, shape, string } from 'prop-types';
+import { array, arrayOf, bool, func, object, shape, string } from 'prop-types';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
 import { useHistory, useLocation } from 'react-router-dom';
@@ -66,6 +66,7 @@ export class SearchPageComponent extends Component {
       isMobileModalOpen: false,
       currentQueryParams: validUrlQueryParamsFromProps(props),
       isSecondaryFiltersOpen: false,
+      mapZoom: 1
     };
 
     this.onMapMoveEnd = debounce(this.onMapMoveEnd.bind(this), SEARCH_WITH_MAP_DEBOUNCE);
@@ -151,6 +152,8 @@ export class SearchPageComponent extends Component {
       defaultFiltersConfig,
       sortConfig
     );
+
+    console.log(search, "mySearch");
 
     history.push(createResourceLocatorString('SearchPage', routeConfiguration, {}, search));
   }
@@ -545,6 +548,7 @@ export class SearchPageComponent extends Component {
                     onManageDisableScrolling('SearchPage.map', false);
                   }}
                   messages={intl.messages}
+                  zoom={this.state.mapZoom}
                 />
               ) : null}
             </div>

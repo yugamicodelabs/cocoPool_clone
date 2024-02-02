@@ -1,7 +1,6 @@
 @import '../../styles/customMediaQueries.css';
 
-.root {
-}
+.root {}
 
 .tabs {
   display: none;
@@ -115,6 +114,7 @@
 .listingCard {
   margin-bottom: 36px;
   width: 100%;
+  min-width: 100%;
 }
 
 /**

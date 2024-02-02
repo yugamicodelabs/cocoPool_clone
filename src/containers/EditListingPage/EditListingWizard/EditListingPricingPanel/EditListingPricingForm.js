@@ -25,7 +25,7 @@ import { priceByGuestCount } from '../../../../constants';
 import css from './EditListingPricingForm.module.css';
 
 const { Money } = sdkTypes;
-
+const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 const getPriceValidators = (listingMinimumPriceSubUnits, marketplaceCurrency, intl) => {
   const priceRequiredMsgId = { id: 'EditListingPricingForm.priceRequired' };
   const priceRequiredMsg = intl.formatMessage(priceRequiredMsgId);
@@ -45,7 +45,7 @@ const getPriceValidators = (listingMinimumPriceSubUnits, marketplaceCurrency, in
     : priceRequired;
 };
 
-const validatePerPersonPrice = (valperPerson)=>{
+const validatePerPersonPrice = (valperPerson) => {
   const newEnteties = [];
   const filteredRange = priceByGuestCount.filter((option, index) => valperPerson[option.label]);
   for (let i of filteredRange) {
@@ -131,37 +131,66 @@ export const EditListingPricingFormComponent = props => (
                     name={option.value}
                     label={option.label + ' personas'}
                   />
-                  <span className={css.secondInput}>
-                    <FieldCurrencyInput
-                      id={`${formId}price`}
-                      name={option.value + '-price'}
-                      className={css.inputBox}
-                      autoFocus={autoFocus}
-                      label={""}
-                      disabled={!values[option.value]}  
-                      placeholder={"Escribe un precio por hora"}
-                      currencyConfig={appSettings.getCurrencyFormatting(marketplaceCurrency)}
-                    />
-                    <span>/h</span>
-                  </span>
+                  {isMobile ?
+                    values[option.value] ?
+                    <span className={css.secondInput}>
+                      <FieldCurrencyInput
+                        id={`${formId}price`}
+                        name={option.value + '-price'}
+                        className={css.inputBox}
+                        autoFocus={autoFocus}
+                        label={""}
+                        disabled={!values[option.value]}
+                        placeholder={"Escribe un precio por hora"}
+                        currencyConfig={appSettings.getCurrencyFormatting(marketplaceCurrency)}
+                      />
+                      <span>/h</span>
+                    </span> : null
+                    :
+                    <span className={css.secondInput}>
+                      <FieldCurrencyInput
+                        id={`${formId}price`}
+                        name={option.value + '-price'}
+                        className={css.inputBox}
+                        autoFocus={autoFocus}
+                        label={""}
+                        disabled={!values[option.value]}
+                        placeholder={"Escribe un precio por hora"}
+                        currencyConfig={appSettings.getCurrencyFormatting(marketplaceCurrency)}
+                      />
+                      <span>/h</span>
+                    </span>
+                  }
                 </div>
               )
             })}
           </div>
 
           {/* Minimum Booking Amount */}
-          <div className={css.minmaxPrice}>
+          {/* <div className={css.minmaxPrice}>
             <label className={css.priceLabel}>
               <FormattedMessage id="EditListingPricingForm.minPricePerProduct" />
             </label>
-            <div className={css.priceSubHeading}><FormattedMessage id="EditListingPricingForm.minPriceSubHeading"/></div>
+            <div className={css.priceSubHeading}><FormattedMessage id="EditListingPricingForm.minPriceSubHeading" /></div>
             <FieldCurrencyInput
-              id={`${formId}minimumBookingAmount`}
-              name="minimumBookingAmount"
+              id={`${formId}minimumBookingHours`}
+              name="minimumBookingHours"
               autoFocus={autoFocus}
               placeholder={intl.formatMessage({ id: 'EditListingPricingForm.priceInputPlaceholder' })}
               currencyConfig={appSettings.getCurrencyFormatting(marketplaceCurrency)}
-              // validate={priceValidators}
+            // validate={priceValidators}
+            />
+          </div> */}
+          {/* Minimum Booking Hours */}
+          <div className={css.minmaxPrice}>
+            <label className={css.priceLabel}>Minimum Booking Hours</label>
+            {/* <div className={css.priceSubHeading}><FormattedMessage id="EditListingPricingForm.minPriceSubHeading" /></div> */}
+            <FieldTextInput
+              id={formId ? `${formId}.minimumBookingHours` : "minimumBookingHours"}
+              name={"minimumBookingHours"}
+              type={"number"}
+              placeholder={"Enter Minimum Booking Hours"}
+              label={""}
             />
           </div>
 

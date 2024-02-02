@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { arrayOf, func, node, number, object, shape, string } from 'prop-types';
 import differenceBy from 'lodash/differenceBy';
@@ -284,6 +284,11 @@ class SearchMapWithMapbox extends Component {
       /* Notify parent component that Mapbox map is loaded */
       this.props.onMapLoad(this.map);
     }
+    
+    // if(prevProps.zoom != this.props.zoom){
+    //   this.initializeMap();
+    // }
+
   }
 
   componentWillUnmount() {
@@ -336,12 +341,13 @@ class SearchMapWithMapbox extends Component {
 
   initializeMap() {
     const { offsetHeight, offsetWidth } = this.state.mapContainer;
+    const { zoom } = this.props;
     const hasDimensions = offsetHeight > 0 && offsetWidth > 0;
     if (hasDimensions) {
       this.map = new window.mapboxgl.Map({
         container: this.state.mapContainer,
         style: 'mapbox://styles/mapbox/streets-v10',
-        scrollZoom: false,
+        scrollZoom: true,
       });
       window.mapboxMap = this.map;
 
@@ -349,6 +355,9 @@ class SearchMapWithMapbox extends Component {
       this.map.addControl(nav, 'top-left');
 
       this.map.on('moveend', this.onMoveend);
+
+      //Add here the value of zoom from 0-22;
+      // this.map.setZoom(zoom);
 
       // Introduce rerendering after map is ready (to include labels),
       // but keep the map out of state life cycle.
@@ -379,7 +388,12 @@ class SearchMapWithMapbox extends Component {
       createURLToListing,
       mapComponentRefreshToken,
       config,
+      zoom
     } = this.props;
+
+    // useEffect(()=>{
+    //   this.initializeMap();
+    // },[zoom])
 
     if (this.map) {
       // Create markers out of price labels and grouped labels

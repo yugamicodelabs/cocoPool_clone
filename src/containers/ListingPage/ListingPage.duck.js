@@ -39,6 +39,10 @@ export const SEND_INQUIRY_REQUEST = 'app/ListingPage/SEND_INQUIRY_REQUEST';
 export const SEND_INQUIRY_SUCCESS = 'app/ListingPage/SEND_INQUIRY_SUCCESS';
 export const SEND_INQUIRY_ERROR = 'app/ListingPage/SEND_INQUIRY_ERROR';
 
+export const SEARCH_LISTINGS_REQUEST = 'app/ListingPage/SEARCH_LISTINGS_REQUEST';
+export const SEARCH_LISTINGS_SUCCESS = 'app/ListingPage/SEARCH_LISTINGS_SUCCESS';
+export const SEARCH_LISTINGS_ERROR = 'app/ListingPage/SEARCH_LISTINGS_ERROR';
+
 // ================ Reducer ================ //
 
 const initialState = {
@@ -59,7 +63,10 @@ const initialState = {
   sendInquiryInProgress: false,
   sendInquiryError: null,
   inquiryModalOpenForListingId: null,
+  savedListings: [],
 };
+
+const resultIds = data => data.data.map(l => l.id);
 
 const listingPageReducer = (state = initialState, action = {}) => {
   const { type, payload } = action;
@@ -128,7 +135,8 @@ const listingPageReducer = (state = initialState, action = {}) => {
       return { ...state, sendInquiryInProgress: false };
     case SEND_INQUIRY_ERROR:
       return { ...state, sendInquiryInProgress: false, sendInquiryError: payload };
-
+    case SEARCH_LISTINGS_SUCCESS:
+      return { ...state, savedListings: payload.data }
     default:
       return state;
   }
@@ -190,6 +198,13 @@ export const fetchLineItemsError = error => ({
 export const sendInquiryRequest = () => ({ type: SEND_INQUIRY_REQUEST });
 export const sendInquirySuccess = () => ({ type: SEND_INQUIRY_SUCCESS });
 export const sendInquiryError = e => ({ type: SEND_INQUIRY_ERROR, error: true, payload: e });
+
+export const searchPageListingsRequest = ()=>({ type: SEARCH_LISTINGS_REQUEST });
+export const searchPageListingsSuccess = (listings)=>({ 
+  type: SEARCH_LISTINGS_SUCCESS, 
+  payload: { data: listings } 
+});
+export const searchPageListingsError = e => ({ type: SEARCH_LISTINGS_ERROR, error: true, payload: e });
 
 // ================ Thunks ================ //
 
@@ -375,15 +390,18 @@ export const fetchTransactionLineItems = ({ orderData, listingId, isOwnListing }
 };
 
 export const showListingById = (listingId, config) =>(dispatch, getState, sdk) => {
+
   const {
     aspectWidth = 1,
     aspectHeight = 1,
     variantPrefix = 'listing-card',
   } = config.layout.listingImage;
+
   const aspectRatio = aspectHeight / aspectWidth;
 
   dispatch(showListingRequest(listingId));
   dispatch(fetchCurrentUser());
+
   const params = {
     id: listingId,
     include: ['author', 'author.profileImage', 'images', 'currentStock'],
@@ -418,16 +436,89 @@ export const showListingById = (listingId, config) =>(dispatch, getState, sdk) =
     .then(response => {
       const listingFields = config?.listing?.listingFields;
       const sanitizeConfig = { listingFields };
+      fetchedListings.push(response.data.data);
       dispatch(addMarketplaceEntities(response, sanitizeConfig));
+      // dispatch(saveListingsfromSearchPage(fetchedListings));
       return response.data.data;
     })
     .catch(e => {
       dispatch(showListingError(storableError(e)));
     });
+};
+
+export const queryListingbyIds = (listingIds, config) => (dispatch, getState, sdk) => {
+  const {
+    aspectWidth = 1,
+    aspectHeight = 1,
+    variantPrefix = 'listing-card',
+  } = config.layout.listingImage;
+
+  const aspectRatio = aspectHeight / aspectWidth;
+
+  const fetchedListing = [];
+
+  const myData = listingIds.map(id => {
+    dispatch(showListingRequest(id.uuid));
+    dispatch(fetchCurrentUser());
+
+    const params = {
+      id: id.uuid,
+      include: ['author', 'author.profileImage', 'images', 'currentStock'],
+      'fields.image': [
+        // Scaled variants for large images
+        'variants.scaled-small',
+        'variants.scaled-medium',
+        'variants.scaled-large',
+        'variants.scaled-xlarge',
+
+        // Cropped variants for listing thumbnail images
+        `variants.${variantPrefix}`,
+        `variants.${variantPrefix}-2x`,
+        `variants.${variantPrefix}-4x`,
+        `variants.${variantPrefix}-6x`,
+
+        // Social media
+        'variants.facebook',
+        'variants.twitter',
+
+        // Avatars
+        'variants.square-small',
+        'variants.square-small2x',
+      ],
+      ...createImageVariantConfig(`${variantPrefix}`, 400, aspectRatio),
+      ...createImageVariantConfig(`${variantPrefix}-2x`, 800, aspectRatio),
+      ...createImageVariantConfig(`${variantPrefix}-4x`, 1600, aspectRatio),
+      ...createImageVariantConfig(`${variantPrefix}-6x`, 2400, aspectRatio),
+    };
+
+    return sdk.listings.show(params)
+      .then(response => {
+        const listingFields = config?.listing?.listingFields;
+        const sanitizeConfig = { listingFields };
+        dispatch(addMarketplaceEntities(response, sanitizeConfig));
+        return denormalisedResponseEntities(response);
+      }).then(res =>{
+        return res;
+      })
+      .catch(e => {
+        dispatch(showListingError(storableError(e)));
+      });
+  });
+  Promise.all(myData).then(res => dispatch(saveListingsfromSearchPage(res)));
 }
 
+export const saveListingsfromSearchPage = (response)=>(dispatch, getState, sdk)=>{
+  dispatch(searchPageListingsRequest());
+
+  const updatedArray = response.flat();
+
+  // dispatch listings to success
+  // const listingIds = listings.data.data.map(l => l.id);
+  dispatch(searchPageListingsSuccess(updatedArray));
+
+};
+
 export const loadData = (params, search, config) => dispatch => {
-  console.log(search, "search");
   const listingId = new UUID(params.id);
 
   // Clear old line-items

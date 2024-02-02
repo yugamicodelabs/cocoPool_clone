@@ -96,6 +96,24 @@ class SearchFiltersMobileComponent extends Component {
       { count: resultsCount }
     );
 
+    const showFilterByOrder = (filters) => {
+      const updatedFilter = [];
+      const filterNameArray = filters.map(filter => filter.key.split(".")[filter.key.split(".").length - 1]);
+      const desiredArray = ["dates", "maxGuest", "category", "Regulation", "extras", "ownerPresent", "poolMaintenance", "privacy", "price"];
+      function customSort(a, b) {
+        return desiredArray.indexOf(a) - desiredArray.indexOf(b);
+      }
+      filterNameArray.sort(customSort);
+      for (let i of filterNameArray) {
+        for (let j of filters) {
+          if (i == j.key.split(".")[j.key.split(".").length - 1]) {
+            updatedFilter.push(j);
+          }
+        }
+      }
+      return updatedFilter;
+    };
+
     return (
       <div className={classes}>
         <div className={css.searchResultSummary}>
@@ -137,7 +155,8 @@ class SearchFiltersMobileComponent extends Component {
             </button>
           </div>
           {this.state.isFiltersOpenOnMobile ? (
-            <div className={css.filtersWrapper}>{children}</div>
+            // <div className={css.filtersWrapper}>{children}</div>
+            <div className={css.filtersWrapper}>{showFilterByOrder(children)}</div>
           ) : null}
 
           <div className={css.showListingsContainer}>

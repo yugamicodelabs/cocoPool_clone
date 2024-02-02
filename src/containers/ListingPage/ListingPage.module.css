@@ -205,7 +205,7 @@
   @media (--viewportLarge) {
     max-width: calc(var(--contentMaxWidth) + 72px);
     padding: 0 36px;
-    margin: 0 auto 117px;
+    margin: 0 auto 30px;
   }
 
   @media (--viewportXLarge) {
@@ -519,16 +519,21 @@
 
   margin-top: 0;
   margin-bottom: 12px;
+  font-size: 18px;
 
   @media (--viewportMedium) {
     margin-top: 0;
     margin-bottom: 8px;
+    font-size: 22px;
+    line-height: 30px;
   }
 }
 
 .sectionHeadingWithExtraMargin {
   @media (--viewportMedium) {
     margin-bottom: 16px;
+    font-size: 22px;
+    line-height: 30px;
   }
 }
 
@@ -831,6 +836,17 @@
     font-size: 16px;
     margin-left: 10px;
   }
+
+  & .locationIcon {
+    & svg {
+      width: 20px;
+      height: 20px;
+
+      & path {
+        fill: #909090;
+      }
+    }
+  }
 }
 
 .topSectionBar {
@@ -865,6 +881,12 @@
 
   & .cancelHeading {
     margin-bottom: 10px;
+    font-size: 18px;
+
+    @media(--viewportMedium) {
+      font-size: 22px;
+      line-height: 30px;
+    }
 
     & .cancelPolicyHeading {
       font-weight: var(--fontWeightBold);
@@ -906,8 +928,12 @@
 
   & .howItWorkHeading {
     font-weight: var(--fontWeightBold);
-    font-size: 16px;
-    line-height: 24px;
+    font-size: 18px;
+
+    @media(--viewportMedium) {
+      font-size: 22px;
+      line-height: 30px;
+    }
   }
 
   & .workGrid {
@@ -936,4 +962,69 @@
 
 .listingCard {
   width: 100%;
+  min-width: 100%;
+}
+
+.similarListingCard {
+  @media (--viewportMedium) {
+    width: 100%;
+    max-width: var(--contentMaxWidth);
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    position: relative;
+  }
+
+  @media (--viewportLarge) {
+    max-width: calc(var(--contentMaxWidth) + 72px);
+    padding: 0 36px;
+    margin: 0 auto 117px;
+  }
+
+  @media (--viewportXLarge) {
+    max-width: var(--contentMaxWidth);
+    padding: 0;
+  }
+
+  &>div {
+    width: 100%;
+  }
+}
+
+.similarHeading {
+  padding: 0 24px;
+
+  @media(--viewportMedium) {
+    padding: 0;
+  }
+
+  & .similarTitle {
+    color: var(--colorGrey700);
+    font-size: 18px;
+
+    @media(--viewportMedium) {
+      font-size: 22px;
+      line-height: 30px;
+    }
+  }
+}
+
+.similarCardGrid {
+
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 24px;
+  width: 100%;
+
+  @media (min-width: 550px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (--viewportMedium) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (--viewportLarge) {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }

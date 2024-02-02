@@ -105,7 +105,7 @@ class GeocoderMapbox {
         limit: 5,
         ...limitCountriesMaybe,
         language: [locale],
-        types: ["address"],
+        types: ["address", "region"],
       })
       .send()
       .then(response => {

@@ -201,14 +201,14 @@ exports.transactionLineItems = (listing, orderData, providerCommission, customer
     ]
     : [];
   
-  const customerCommissionMaybe = hasCommissionPercentage(customerCommission) ?
-  [{
-    code: 'line-item/customer-commission',
-    unitPrice: calculateTotalFromLineItems([order]),
-    percentage: getPositiveNegation(customerCommission.percentage),
-    includeFor: ['customer']
-  }] 
-  : [];
+  // const customerCommissionMaybe = hasCommissionPercentage(customerCommission) ?
+  // [{
+  //   code: 'line-item/customer-commission',
+  //   unitPrice: calculateTotalFromLineItems([order]),
+  //   percentage: getPositiveNegation(customerCommission.percentage),
+  //   includeFor: ['customer']
+  // }] 
+  // : [];
 
   const extraItemsMaybe = Array.isArray(extraItems) && extraItems.length ?
     extraItems.map(item => {
@@ -230,7 +230,7 @@ exports.transactionLineItems = (listing, orderData, providerCommission, customer
 
   // Let's keep the base price (order) as first line item and provider's commission as last one.
   // Note: the order matters only if OrderBreakdown component doesn't recognize line-item.
-  const lineItems = [order, ...extraLineItems, ...providerCommissionMaybe, ...customerCommissionMaybe, ...extraItemsMaybe, ...guestCountMaybe];
+  const lineItems = [order, ...extraLineItems, ...providerCommissionMaybe, ...extraItemsMaybe, ...guestCountMaybe];
 
   return lineItems;
 };

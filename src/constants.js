@@ -67,6 +67,6 @@ export const priceByGuestCount = [
     { key: "21-25", label: "21-25", value: "21-25" },
     { key: "26-30", label: "26-30", value: "26-30" },
     { key: "31-50", label: "31-50", value: "31-50" },
-    { key: "51+", label: "+51", value: "51+" },
+    { key: "51+", label: "+51", value: "51_above" },
 ];
 

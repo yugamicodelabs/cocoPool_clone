@@ -166,3 +166,35 @@
     }
   }
 }
+
+
+.sliderWrapper {
+
+  & :global(.slick-arrow) {
+    background: #000000b3;
+    color: #fff;
+    z-index: 1;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 35px;
+    height: 35px;
+
+    &:before {
+      display: none;
+    }
+
+    & svg {
+      width: 30px;
+      height: 30px;
+    }
+  }
+
+  & :global(.slick-prev) {
+    left: 10px;
+  }
+
+  & :global(.slick-next) {
+    right: 10px;
+  }
+}

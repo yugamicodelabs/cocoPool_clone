@@ -8,7 +8,7 @@ import { ListingCard, PaginationLinks } from '../../../components';
 import css from './SearchResultsPanel.module.css';
 
 const SearchResultsPanel = props => {
-  
+
   const {
     className,
     rootClassName,
@@ -18,6 +18,7 @@ const SearchResultsPanel = props => {
     setActiveListing,
     isMapVariant,
   } = props;
+  console.log(listings, "listings")
 
   const classes = classNames(rootClassName || css.root, className);
 
