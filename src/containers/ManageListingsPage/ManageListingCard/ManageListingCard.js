@@ -42,6 +42,8 @@ import {
 import MenuIcon from './MenuIcon';
 import Overlay from './Overlay';
 import css from './ManageListingCard.module.css';
+import Slider from "react-slick";
+
 
 // Menu content needs the same padding
 const MENU_CONTENT_OFFSET = -12;
@@ -66,6 +68,36 @@ const priceData = (price, currency, intl) => {
   return {};
 };
 
+
+function SampleNextArrow(props) {
+  const { className, style, onClick } = props;
+
+  return (
+    <div
+      className={className}
+      style={{ ...style, display: 'block' }}
+      onClick={onClick}
+    >
+      <svg width="30px" height="30px" viewBox="0 0 0.75 0.75" xmlns="http://www.w3.org/2000/svg"><path fill="#989898" fill-rule="evenodd" d="m0.264 0.081 0.272 0.272a0.025 0.025 0 0 1 0.008 0.018 0.026 0.026 0 0 1 -0.008 0.019c-0.098 0.096 -0.193 0.188 -0.284 0.278 -0.005 0.004 -0.023 0.015 -0.038 -0.001 -0.014 -0.016 -0.006 -0.03 0 -0.036l0.265 -0.259 -0.253 -0.253c-0.009 -0.013 -0.008 -0.024 0.002 -0.035 0.011 -0.011 0.023 -0.011 0.036 -0.002Z" /></svg>
+    </div>
+  );
+}
+
+function SamplePrevArrow(props) {
+  const { className, style, onClick } = props;
+
+  return (
+    <div
+      className={className}
+      style={{ ...style, display: 'block' }}
+      onClick={onClick}
+    >
+      <svg width="30px" height="30px" viewBox="0 0 0.75 0.75" xmlns="http://www.w3.org/2000/svg"><path fill="#989898" fill-rule="evenodd" d="M0.271 0.371c0.086 -0.087 0.171 -0.171 0.253 -0.253a0.024 0.024 0 0 0 0 -0.034c-0.012 -0.013 -0.03 -0.012 -0.039 -0.003 -0.085 0.086 -0.175 0.175 -0.268 0.268 -0.007 0.006 -0.011 0.013 -0.011 0.022 0 0.008 0.004 0.016 0.011 0.022l0.281 0.274a0.028 0.028 0 0 0 0.039 -0.001c0.013 -0.013 0.008 -0.027 0.002 -0.033a127.79 127.79 0 0 1 -0.269 -0.262Z" /></svg>
+    </div>
+  );
+}
+
+
 const createListingURL = (routes, listing) => {
   const id = listing.id.uuid;
   const slug = createSlug(listing.attributes.title);
@@ -74,23 +106,23 @@ const createListingURL = (routes, listing) => {
   const variant = isDraft
     ? LISTING_PAGE_DRAFT_VARIANT
     : isPendingApproval
-    ? LISTING_PAGE_PENDING_APPROVAL_VARIANT
-    : null;
+      ? LISTING_PAGE_PENDING_APPROVAL_VARIANT
+      : null;
 
   const linkProps =
     isPendingApproval || isDraft
       ? {
-          name: 'ListingPageVariant',
-          params: {
-            id,
-            slug,
-            variant,
-          },
-        }
+        name: 'ListingPageVariant',
+        params: {
+          id,
+          slug,
+          variant,
+        },
+      }
       : {
-          name: 'ListingPage',
-          params: { id, slug },
-        };
+        name: 'ListingPage',
+        params: { id, slug },
+      };
 
   return createResourceLocatorString(linkProps.name, routes, linkProps.params, {});
 };
@@ -332,6 +364,7 @@ export const ManageListingCardComponent = props => {
     onToggleMenu,
     renderSizes,
   } = props;
+  console.log(listing, "listing")
   const classes = classNames(rootClassName || css.root, className);
   const currentListing = ensureOwnListing(listing);
   const id = currentListing.id.uuid;
@@ -355,7 +388,7 @@ export const ManageListingCardComponent = props => {
 
   const firstImage =
     currentListing.images && currentListing.images.length > 0 ? currentListing.images[0] : null;
-
+    
   const menuItemClasses = classNames(css.menuItem, {
     [css.menuItemDisabled]: !!actionsInProgressListingId,
   });
@@ -391,34 +424,66 @@ export const ManageListingCardComponent = props => {
     ? Object.keys(firstImage?.attributes?.variants).filter(k => k.startsWith(variantPrefix))
     : [];
 
+  const settings = {
+    arrows: true,
+    nextArrow: <SampleNextArrow />,
+    prevArrow: <SamplePrevArrow />,
+    dots: false,
+    dotsClass: "slick-dots slick-thumb",
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+  };
+
   return (
     <div className={classes}>
       <div
         className={css.clickWrapper}
         tabIndex={0}
-        onClick={event => {
-          event.preventDefault();
-          event.stopPropagation();
+        // onClick={event => {
+        //   event.preventDefault();
+        //   event.stopPropagation();
 
-          // ManageListingCard contains links, buttons and elements that are working with routing.
-          // This card doesn't work if <a> or <button> is used to wrap events that are card 'clicks'.
-          //
-          // NOTE: It might be better to absolute-position those buttons over a card-links.
-          // (So, that they have no parent-child relationship - like '<a>bla<a>blaa</a></a>')
-          history.push(createListingURL(routeConfiguration, listing));
-        }}
+        //   // ManageListingCard contains links, buttons and elements that are working with routing.
+        //   // This card doesn't work if <a> or <button> is used to wrap events that are card 'clicks'.
+        //   //
+        //   // NOTE: It might be better to absolute-position those buttons over a card-links.
+        //   // (So, that they have no parent-child relationship - like '<a>bla<a>blaa</a></a>')
+        //   history.push(createListingURL(routeConfiguration, listing));
+        // }}
         onMouseOver={onOverListingLink}
         onTouchStart={onOverListingLink}
       >
-        <AspectRatioWrapper width={aspectWidth} height={aspectHeight}>
-          <ResponsiveImage
-            rootClassName={css.rootForImage}
-            alt={title}
-            image={firstImage}
-            variants={variants}
-            sizes={renderSizes}
-          />
-        </AspectRatioWrapper>
+        {currentListing.images && currentListing.images.length > 1 ?
+          <Slider {...settings} className={css.sliderWrapper}>
+            {currentListing.images.map((st) => {
+              return (
+                <AspectRatioWrapper
+                  width={aspectWidth}
+                  height={aspectHeight}
+                >
+                  <ResponsiveImage
+                    rootClassName={css.rootForImage}
+                    alt={title}
+                    image={st}
+                    variants={Object.keys(firstImage?.attributes?.variants).filter(k => k.startsWith(variantPrefix))}
+                    sizes={renderSizes}
+                  />
+                </AspectRatioWrapper>
+              )
+            })}
+          </Slider> :
+          <AspectRatioWrapper width={aspectWidth} height={aspectHeight}>
+            <ResponsiveImage
+              rootClassName={css.rootForImage}
+              alt={title}
+              image={firstImage}
+              variants={variants}
+              sizes={renderSizes}
+            />
+          </AspectRatioWrapper>
+        }
 
         <div className={classNames(css.menuOverlayWrapper)}>
           <div className={classNames(css.menuOverlay, { [css.menuOverlayOpen]: isMenuOpen })} />

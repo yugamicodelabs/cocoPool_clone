@@ -114,6 +114,8 @@ class TopbarComponent extends Component {
         ...originMaybe,
         address: search,
         bounds,
+        pub_maxGuest: [20,10,5],
+        dates: "2024-02-03,2024-02-04"
       };
     };
     const searchParams = {

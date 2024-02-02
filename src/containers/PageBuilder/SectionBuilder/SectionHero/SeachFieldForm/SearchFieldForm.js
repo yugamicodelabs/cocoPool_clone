@@ -3,16 +3,17 @@ import { compose } from "redux";
 import { injectIntl } from "react-intl";
 import { Form as FinalForm } from "react-final-form";
 import * as validators from "../../../../../util/validators";
-import { Button, FieldDateInput, FieldLocationAutocompleteInput, FieldTextInput, Form } from "../../../../../components";
+import { Button, FieldDateInput, FieldDateRangeInput, FieldLocationAutocompleteInput, FieldSelect, FieldTextInput, Form } from "../../../../../components";
+import { priceByGuestCount } from "../../../../../constants";
 import IconCard from "../../../../../components/SavedCardDetails/IconCard/IconCard";
 import classNames from "classnames";
 import css from "./SearchFieldForm.module.css";
-import moment from "moment";
-const identity = (v)=> v;
+const identity = (v) => v;
 
 const SearchFieldsFormComponent = props => (
     <FinalForm
         {...props}
+        keepDirtyOnReinitialize={true}
         render={fieldRenderProps => {
             const {
                 rootClassName,
@@ -22,12 +23,10 @@ const SearchFieldsFormComponent = props => (
                 formId,
                 values,
                 autoFocus,
-                intl
+                intl,
+                invalid
             } = fieldRenderProps;
-
-
             const classes = classNames(rootClassName || css.root, className);
-
             // location
             const addressRequiredMessage = intl.formatMessage({
                 id: 'EditListingLocationForm.addressRequired',
@@ -35,11 +34,12 @@ const SearchFieldsFormComponent = props => (
             const addressNotRecognizedMessage = intl.formatMessage({
                 id: 'EditListingLocationForm.addressNotRecognized',
             });
-
             // search Label
             const searchLabel = intl.formatMessage({
                 id: "SearchFieldsForm.searchButtonLabel"
             });
+            // Disbaled values can be changed here.
+            const disabled = !values?.location && !values?.bookingDate && !values?.totalPersons;
 
             return (
                 <Form className={classes} onSubmit={handleSubmit}>
@@ -67,10 +67,6 @@ const SearchFieldsFormComponent = props => (
                                         useDefaultPredictions={true}
                                         format={identity}
                                         valueFromForm={values.location}
-                                    // validate={validators.composeValidators(
-                                    //     validators.autocompleteSearchRequired(addressRequiredMessage),
-                                    //     validators.autocompletePlaceSelected(addressNotRecognizedMessage)
-                                    // )}
                                     />
                                 </div>
                                 <div className={css.selectDate}>
@@ -87,17 +83,27 @@ const SearchFieldsFormComponent = props => (
                                     <span className={css.peopleIcon}>
                                         <IconCard brand="user" />
                                     </span>
-                                    <FieldTextInput
+                                    {/* <FieldTextInput
                                         id={formId ? `${formId}.totalPersons` : "totalPersons"}
                                         className={css.inputBox}
                                         name={"totalPersons"}
                                         type={"number"}
                                         placeholder={intl.formatMessage({ id: "SearchFieldForm.totalPersonsPlaceholder" })}
-                                        // validate={validators}
-                                    />
+                                    /> */}
+                                    <FieldSelect
+                                        id={"totalGuests"}
+                                        name={"totalPersons"}
+                                        className={css.inputBox}
+                                        placeholder={intl.formatMessage({ id: "SearchFieldForm.totalPersonsPlaceholder" })}
+                                    >
+                                        <option value={""} disabled>{intl.formatMessage({ id: "SearchFieldForm.totalPersonsPlaceholder" })}</option>
+                                        {priceByGuestCount.map((item, index) =>{
+                                            return(<option value={item.value} key={index}>{item.label}</option>)
+                                        })}
+                                    </FieldSelect>
                                 </div>
                                 <div className={css.submitButton}>
-                                    <Button>{searchLabel}</Button>
+                                    <Button disabled={disabled}>{searchLabel}</Button>
                                 </div>
                             </div>
                         </div>

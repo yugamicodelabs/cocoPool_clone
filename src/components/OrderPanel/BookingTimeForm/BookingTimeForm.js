@@ -153,19 +153,12 @@ export class BookingTimeFormComponent extends Component {
                 >
                   <option disabled value={""}>Select Package</option>
                   {Array.isArray(priceRange) && priceRange.map((ele, index) => ele.quantityRange.split("-").length > 1 ?
-                    <option value={ele.quantityRange} key={index}>Entre {ele.quantityRange.split("-")[0]} y {ele.quantityRange.split("-")[1]} personas {formatMoney(intl, new Money(ele.amount, ele.currency))}</option>
+                    <option value={ele.quantityRange} key={index}>
+                      Entre {ele.quantityRange.split("-")[0]} y {ele.quantityRange.split("-")[1]} personas {formatMoney(intl, new Money(ele.amount, ele.currency))}
+                    </option>
                     :
-                    <option value={ele.quantityRange} key={index}>Entre {ele.quantityRange} personas {formatMoney(intl, new Money(ele.amount, ele.currency))}</option>)}
+                    <option value={ele.quantityRange} key={index}>Entre {ele.quantityRange == "51_above" ? "+51" : null} personas {formatMoney(intl, new Money(ele.amount, ele.currency))}</option>)}
                 </FieldSelect>
-
-                {/* <FieldTextInput
-                  id={"totalGuests"}
-                  className={css.guestCountInput}
-                  name={"guestCount"}
-                  type={"number"}
-                  placeholder={intl.formatMessage({ id: "SearchFieldForm.totalPersonsPlaceholder" })}
-                  validate={composeValidators(numberAtLeast(`Minimum Guests should be ${minGuest}`, minGuest), numberAtMax(`Maximum Guests should be ${maxGuest}`, maxGuest))}
-                /> */}
               </div>
 
               {monthlyTimeSlots && timeZone ? (
@@ -190,17 +183,6 @@ export class BookingTimeFormComponent extends Component {
                   dayCountAvailableForBooking={dayCountAvailableForBooking}
                 />
               ) : null}
-
-              {/* <div className={css.countSection}>
-                <div className={css.countWrapper}>
-                  <div className={css.typeHeading}>Guests</div>
-                  <div className={css.functionWrapper}>
-                    <Button className={css.minusButton} onClick={()=>form.change("guestCount", values.guestCount - 1)}>-</Button>
-                    <span className={css.amountCount}>{values.guestCount}</span>
-                    <Button className={css.addButton} onClick={()=>form.change("guestCount", values.guestCount + 1)}>+</Button>
-                  </div>
-                </div>
-              </div> */}
 
               {/* Extra Items */}
               <div className={css.extraBox}>

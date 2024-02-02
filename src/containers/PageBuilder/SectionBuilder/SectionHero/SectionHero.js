@@ -8,7 +8,14 @@ import SectionContainer from '../SectionContainer';
 import SearchComponent from './SeachFieldForm/SearchFieldForm';
 import css from './SectionHero.module.css';
 import { compose } from 'redux';
-import { injectIntl } from 'react-intl';
+import { injectIntl, useIntl } from 'react-intl';
+import { useConfiguration } from '../../../../context/configurationContext';
+import { useRouteConfiguration } from '../../../../context/routeConfigurationContext';
+import { withRouter } from 'react-router-dom/cjs/react-router-dom.min';
+import { withViewport } from '../../../../util/uiHelpers';
+import { isMainSearchTypeKeywords, isOriginInUse } from '../../../../util/search';
+import moment from 'moment';
+import { createResourceLocatorString } from '../../../../util/routes';
 
 // Section component for a website's hero section
 // The Section Hero doesn't have any Blocks by default, all the configurations are made in the Section Hero settings
@@ -23,9 +30,43 @@ const SectionHero = props => {
     appearance,
     callToAction,
     options,
-    intl,
-    sectionName
+    sectionName,
   } = props;
+
+  const config = useConfiguration();
+  const routeConfiguration = useRouteConfiguration();
+  const intl = useIntl();
+
+  const handleSeachSubmit = (values) =>{
+    console.log(values, "myVal");
+    const { location, bookingDate, totalPersons, keywords } = values;
+    const { currentSearchParams, history } = props;
+
+    const topbarSearchParams = () => {
+      if (isMainSearchTypeKeywords(config)) {
+        return { keywords: keywords };
+      }
+      // topbar search defaults to 'location' search
+      const { search, selectedPlace } = location;
+      const { origin, bounds } = selectedPlace;
+      const originMaybe = isOriginInUse(config) ? { origin } : {};
+      const dates = moment(bookingDate.date).format("YYYY-MM-DD");
+      const guestCount = totalPersons.split("-").length > 1 ? totalPersons.split("-")[1] : totalPersons.split("-")[0];
+
+      return {
+        ...originMaybe,
+        address: search,
+        bounds,
+        pub_maxGuest: guestCount,
+        dates: `${dates},${dates}`
+      };
+    };
+    const searchParams = {
+      ...currentSearchParams,
+      ...topbarSearchParams(),
+    };
+    history.push(createResourceLocatorString('SearchPage', routeConfiguration, {}, searchParams));
+  };
 
   // If external mapping has been included for fields
   // E.g. { h1: { component: MyAwesomeHeader } }
@@ -52,7 +93,7 @@ const SectionHero = props => {
       {/* Search Fields */}
       {sectionName === "landing-hero" ?
         <SearchComponent
-          onSubmit={() => { }}
+          onSubmit={(values) => handleSeachSubmit(values)}
           intl={intl}
         />
         : null}
@@ -95,4 +136,4 @@ SectionHero.propTypes = {
   options: propTypeOption,
 };
 
-export default compose(injectIntl)(SectionHero);
+export default compose(injectIntl, withRouter, withViewport)(SectionHero);

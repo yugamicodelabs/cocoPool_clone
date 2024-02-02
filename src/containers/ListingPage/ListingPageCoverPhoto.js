@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { array, arrayOf, bool, func, shape, string, oneOf, object } from 'prop-types';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
@@ -55,6 +55,8 @@ import {
   fetchTransactionLineItems,
   showListing,
   showListingById,
+  saveListingsfromSearchPage,
+  queryListingbyIds,
 } from './ListingPage.duck';
 
 import {
@@ -82,6 +84,7 @@ import SimilarListingMaybe from './SimilarListingMaybe.js';
 import { setActiveListing } from '../SearchPage/SearchPage.duck.js';
 
 const MIN_LENGTH_FOR_LONG_WORDS_IN_TITLE = 16;
+const SESSION_KEY = "listingIds";
 
 const { UUID, Money } = sdkTypes;
 
@@ -120,13 +123,16 @@ export const ListingPageComponent = props => {
     config,
     routeConfiguration,
     onActivateListing,
-    getListingById
+    getListingById,
+    queryListing,
+    searchPageListings,
   } = props;
 
-  // Listings from listingPage
-  const { searchedListings=[] } = location.state || {};
+  useEffect(() => {
+    const listingIds = window && JSON.parse(window.sessionStorage.getItem(SESSION_KEY));
+    Array.isArray(listingIds) && listingIds.length && queryListing(listingIds, config);
+  }, [location]);
 
-  
   // prop override makes testing a bit easier
   // TODO: improve this when updating test setup
   const listingConfig = listingConfigProp || config.listing;
@@ -189,13 +195,12 @@ export const ListingPageComponent = props => {
     publicData = {},
     metadata = {},
   } = currentListing.attributes;
-  const { priceRange = [], location: listingLocation } = publicData || {};
+  const { priceRange = [], location: listingLocation, maxGuest, minGuest } = publicData || {};
 
-
-  const minGuestRange = priceRange && Array.isArray(priceRange) && priceRange.length && priceRange[0].quantityRange.split("-");
-  const minGuest = minGuestRange?.length > 1 && minGuestRange[0];
-  const maxGuestRange = priceRange && Array.isArray(priceRange) && priceRange.length && priceRange[priceRange.length - 1].quantityRange.split("-");
-  const maxGuest = maxGuestRange?.length > 1 ? maxGuestRange[1] : maxGuestRange[0];
+  // const minGuestRange = priceRange && Array.isArray(priceRange) && priceRange.length && priceRange[0].quantityRange.split("-");
+  // const minGuest = minGuestRange?.length > 1 && minGuestRange[0];
+  // const maxGuestRange = priceRange && Array.isArray(priceRange) && priceRange.length && priceRange[priceRange.length - 1].quantityRange.split("-");
+  // const maxGuest = maxGuestRange?.length > 1 ? maxGuestRange[1] : maxGuestRange[0];
   const startWithPrice = price;
   const locationArray = listingLocation?.address.split(", ");
   const poolAddress = locationArray ? `${locationArray[1]}, ${locationArray[2]}` : "";
@@ -342,7 +347,7 @@ export const ListingPageComponent = props => {
             <div className={css.topSectionBar}>
               <div className={css.locationSection}>
                 <span className={css.locationIcon}>
-                  <IconCard brand="location" />
+                  <IconCard brand="locationcard" />
                 </span>
                 <span className={css.locationAddress}>
                   {/* 08348 Cabrils, Barcelona, Spain */}
@@ -351,10 +356,10 @@ export const ListingPageComponent = props => {
               </div>
               <div className={css.locationSection}>
                 <span className={css.locationIcon}>
-                  <IconCard brand="people" />
+                  <IconCard brand="user" />
                 </span>
                 <span className={css.locationAddress}>
-                  {maxGuest} People (max)
+                  {maxGuest == "51_above" ? "+51" : maxGuest} People (max)
                 </span>
               </div>
               <div className={css.locationSection}>
@@ -367,7 +372,7 @@ export const ListingPageComponent = props => {
               </div>
             </div>
 
-            <SectionTextMaybe text={description} showAsIngress />
+            <SectionTextMaybe text={description} showAsIngress heading={"Description"} />
 
             {listingConfig.listingFields.reduce((pickedElements, config) => {
               const { key, enumOptions, includeForListingTypes, scope = 'public' } = config;
@@ -424,13 +429,6 @@ export const ListingPageComponent = props => {
               currentUser={currentUser}
               onManageDisableScrolling={onManageDisableScrolling}
             />
-            {/* <SimilarListingMaybe
-              listings={listings}
-              currentListing={currentListing}
-              setActiveListing={onActivateListing}
-              intl={intl}
-              isMapVariant
-            /> */}
           </div>
           <div className={css.orderColumnForHeroLayout}>
             <OrderPanel
@@ -470,6 +468,15 @@ export const ListingPageComponent = props => {
               startWithPrice={startWithPrice}
             />
           </div>
+        </div>
+        <div className={css.similarListingCard}>
+          <SimilarListingMaybe
+            listings={searchPageListings}
+            currentListingId={listingId}
+            setActiveListing={onActivateListing}
+            intl={intl}
+            isMapVariant
+          />
         </div>
       </LayoutSingleColumn>
     </Page>
@@ -576,8 +583,13 @@ const mapStateToProps = state => {
     fetchLineItemsInProgress,
     fetchLineItemsError,
     inquiryModalOpenForListingId,
+    savedListings
   } = state.ListingPage;
   const { currentUser } = state.user;
+  const { currentPageResultIds } = state.SearchPage;
+  currentPageResultIds.length > 0 ? window && window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(currentPageResultIds)) : null;
+  const searchPageListings = savedListings;
+
 
   const getListing = id => {
     const ref = { id, type: 'listing' };
@@ -607,6 +619,7 @@ const mapStateToProps = state => {
     fetchLineItemsError,
     sendInquiryInProgress,
     sendInquiryError,
+    searchPageListings,
   };
 };
 
@@ -621,7 +634,8 @@ const mapDispatchToProps = dispatch => ({
   onFetchTimeSlots: (listingId, start, end, timeZone) =>
     dispatch(fetchTimeSlots(listingId, start, end, timeZone)),
   onActivateListing: listingId => dispatch(setActiveListing(listingId)),
-  getListingById: (listingId, config) => dispatch(showListingById(listingId, config))
+  getListingById: (listingId, config) => dispatch(showListingById(listingId, config)),
+  queryListing: (listingIds, config) => dispatch(queryListingbyIds(listingIds, config))
 });
 
 // Note: it is important that the withRouter HOC is **outside** the

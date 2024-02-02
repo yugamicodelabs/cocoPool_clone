@@ -235,6 +235,7 @@ export const setActiveListing = listingId => ({
 });
 
 export const loadData = (params, search, config) => {
+
   const queryParams = parse(search, {
     latlng: ['origin'],
     latlngBounds: ['bounds'],
@@ -266,6 +267,8 @@ export const loadData = (params, search, config) => {
         'publicData.listingType',
         'publicData.transactionProcessAlias',
         'publicData.unitType',
+        'publicData.maxGuest',
+        'publicData.minGuest',
         // These help rendering of 'purchase' listings,
         // when transitioning from search page to listing page
         'publicData.pickupEnabled',
@@ -280,7 +283,7 @@ export const loadData = (params, search, config) => {
       ],
       ...createImageVariantConfig(`${variantPrefix}`, 400, aspectRatio),
       ...createImageVariantConfig(`${variantPrefix}-2x`, 800, aspectRatio),
-      'limit.images': 1,
+      // 'limit.images': 1,
     },
     config
   );

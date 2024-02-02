@@ -70,6 +70,7 @@ export const sortConfig = {
     { key: '-createdAt', labelTranslationKey: 'SortBy.oldest' },
     { key: '-price', labelTranslationKey: 'SortBy.lowestPrice' },
     { key: 'price', labelTranslationKey: 'SortBy.highestPrice' },
+    { key: 'meta_rating', label: 'Highest rated' },
     // If you add own sort options, you can also use label key: { key: 'meta_rating', label: 'Highest rated' },
 
     // The relevance is only used for keyword search, but the

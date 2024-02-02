@@ -21,7 +21,7 @@ const { Money } = sdkTypes;
 const getInitialValues = params => {
   const { listing } = params;
   const { price, publicData } = listing.attributes || {};
-  const { priceRange, extraItems, isDiscount, minimumBookingAmount, ...rest } = publicData;
+  const { priceRange, extraItems, isDiscount, minimumBookingHours, ...rest } = publicData;
   const updatedInitialData = denormalisePriceRangeValues(priceRange);
   const listExtra = extraItems?.map(item => {
     const { itemPrice, ...rest } = item;
@@ -34,7 +34,7 @@ const getInitialValues = params => {
     priceRange: priceByGuestCount || [],
     extraItems: listExtra || [],
     isDiscount:  isDiscount ? isDiscount : "No",
-    minimumBookingAmount: minimumBookingAmount ? new Money(minimumBookingAmount?.amount, minimumBookingAmount?.currency) : null,
+    minimumBookingHours,
     ...updatedInitialData
   };
 };
@@ -85,7 +85,7 @@ const EditListingPricingPanel = props => {
           className={css.form}
           initialValues={initialValues}
           onSubmit={values => {
-            const { price, priceRange, extraItems, isDiscount, minimumBookingAmount, ...rest } = values;
+            const { price, priceRange, extraItems, isDiscount, minimumBookingHours, ...rest } = values;
             // New values for listing attributes
             const listExtra = extraItems?.map(item => {
               const { itemPrice, ...rest } = item;
@@ -93,13 +93,19 @@ const EditListingPricingPanel = props => {
               return rest;
             });
             const updatedpriceRange = normalisePriceRangeValues(values);
+            const maxGuestRange = updatedpriceRange && Array.isArray(updatedpriceRange) && updatedpriceRange.length && updatedpriceRange[updatedpriceRange.length - 1].quantityRange.split("-");
+            const maxGuest = maxGuestRange?.length > 1 ? maxGuestRange[1] : maxGuestRange[0];
+            const minGuestRange = updatedpriceRange && Array.isArray(updatedpriceRange) && updatedpriceRange.length && updatedpriceRange[0].quantityRange.split("-");
+            const minGuest = minGuestRange?.length > 1 && minGuestRange[0];
             const updateValues = {
               price: new Money(updatedpriceRange[0]?.amount, updatedpriceRange[0]?.currency),
               publicData: {
                 priceRange: updatedpriceRange,
                 extraItems: listExtra,
                 isDiscount,
-                minimumBookingAmount: { amount: minimumBookingAmount?.amount, currency: minimumBookingAmount?.currency }
+                maxGuest,
+                minGuest,
+                minimumBookingHours
               }
             };
             onSubmit(updateValues);

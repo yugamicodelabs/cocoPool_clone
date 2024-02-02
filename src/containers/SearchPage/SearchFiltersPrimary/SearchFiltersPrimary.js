@@ -18,6 +18,24 @@ const SearchFiltersPrimaryComponent = props => {
     selectedSecondaryFiltersCount,
   } = props;
 
+  const showFilterByOrder = (filters) => {
+    const updatedFilter = [];
+    const filterNameArray = filters.map(filter => filter.key.split(".")[filter.key.split(".").length - 1]);
+    const desiredArray = ["dates", "maxGuest", "category", "Regulation", "extras", "ownerPresent", "poolMaintenance", "privacy", "price"];
+    function customSort(a, b) {
+      return desiredArray.indexOf(a) - desiredArray.indexOf(b);
+    }
+    filterNameArray.sort(customSort);
+    for (let i of filterNameArray) {
+      for (let j of filters) {
+        if (i == j.key.split(".")[j.key.split(".").length - 1]) {
+          updatedFilter.push(j);
+        }
+      }
+    }
+    return updatedFilter;
+  };
+
   const classes = classNames(rootClassName || css.root, className);
 
   const toggleSecondaryFiltersOpenButton = toggleSecondaryFiltersOpen ? (
@@ -37,7 +55,8 @@ const SearchFiltersPrimaryComponent = props => {
   return (
     <div className={classes}>
       <div className={css.filters}>
-        {children}
+        {/* {children} */}
+        {showFilterByOrder(children)}
         {toggleSecondaryFiltersOpenButton}
       </div>
     </div>
